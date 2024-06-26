@@ -10,8 +10,10 @@ pub enum CommandGroup {
     Admin,
 }
 
-pub struct Command {
-    handle: fn(CommandParams) -> Result<()>,
+pub struct Command<F> 
+    where F: FnMut(CommandParams) -> Result<()>
+{
+    handle: F,
     aliases: Vec<String>,
     group: CommandGroup,
 

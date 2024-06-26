@@ -1,0 +1,6 @@
+{
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": true
+    },
+    "editor.autoClosingComments": "never",
+}

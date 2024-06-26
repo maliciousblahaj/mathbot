@@ -1,7 +1,4 @@
 pub mod math;
-pub mod meta;
-
-
-
-
+pub mod misc;
+pub mod info;
 

@@ -1,6 +1,4 @@
-use crate::{command::{Command, CommandParams}, Error, Result};
-use serenity::all::{Context, Message};
-
+use crate::{command::Command, Error, Result};
 
 pub struct Bot {
     prefix: String,
@@ -8,28 +6,25 @@ pub struct Bot {
 }
 
 impl Bot {
-    fn new(prefix: String) -> Self {
+    pub fn new(prefix: &str) -> Self {
         Self {
-            prefix,
+            prefix: prefix.to_string(),
             commands: None,
         }
     }
 
-    /// Register a command on the Bot struct
-    fn register(
+    /// Register a command to Bot.commands (builder pattern)
+    pub fn register(
         &mut self,
-        handle: fn(CommandParams) -> Result<()>, 
-        aliases: Vec<String>,
-    ) -> Result<()> {
-        let command = Command::new(handle, aliases);
-
+        command: Command,
+    ) -> &mut Self {
         if self.commands.is_none() {
             self.commands = Some(Vec::new());
         }
 
-        self.commands.as_mut().expect("Failed to append command to Bot.commands while registring")
+        self.commands.as_mut().expect("Failed to append command to Bot.commands")
             .push(command);
 
-        Ok(())
+        self
     }
 }

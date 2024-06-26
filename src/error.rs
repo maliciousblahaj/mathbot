@@ -8,9 +8,6 @@ pub enum Error {
     
     // -- Misc errors
     Test,
-
-    // -- Impossible errors
-    Impossible,
 }
 
 // region:    --- Error boilerplate

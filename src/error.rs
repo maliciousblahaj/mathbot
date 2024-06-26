@@ -4,10 +4,14 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, strum_macros::AsRefStr)]
 pub enum Error {
+    
+    
     // -- Misc errors
     Test,
-}
 
+    // -- Impossible errors
+    Impossible,
+}
 
 // region:    --- Error boilerplate
 impl error::Error for Error{}
@@ -18,3 +22,7 @@ impl fmt::Display for Error {
     }
 }
 // endregion: --- Error boilerplate
+
+pub enum ClientError {
+
+}

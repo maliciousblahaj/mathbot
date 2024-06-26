@@ -6,6 +6,7 @@
 mod error;
 mod commands;
 mod bot;
+mod command;
 
 pub use self::error::{Error, Result};
 

@@ -1,4 +1,6 @@
-use crate::{Error, Result};
+use std::future::Future;
+
+use crate::Result;
 use serenity::all::{Context, Message};
 
 pub enum CommandGroup {
@@ -8,27 +10,28 @@ pub enum CommandGroup {
     Fun,
     Math,
     Admin,
+    Test,
 }
 
-pub struct Command<F> 
-    where F: FnMut(CommandParams) -> Result<()>
+pub struct Command
+    //F: Future<Output = Result<()>>,
 {
-    handle: F,
+    handle: Box<fn(CommandParams) -> dyn Future<Output = Result<()>>>,
     aliases: Vec<String>,
     group: CommandGroup,
 
     //TODO: add documentation for commands (for help menu)
 }
 
-//constructor boilerplate
 impl Command {
     pub fn new(
-        handle: fn(CommandParams) -> Result<()>,
+        handle: fn(CommandParams) -> dyn Future<Output = Result<()>>,
         aliases: Vec<String>,
         group: CommandGroup,
-    ) -> Self {
+    ) -> Self 
+    {
         Self {
-            handle,
+            handle: Box::new(handle),
             aliases,
             group,
         }
@@ -36,9 +39,9 @@ impl Command {
 }
 
 
-/// Struct for parameters to a command
+/// Struct for parameters and context to a command
 /// 
-/// Includes Context and Message right now, but will include things like args in the future
+/// will include things like args in the future
 pub struct CommandParams {
     ctx: Context, 
     msg: Message,

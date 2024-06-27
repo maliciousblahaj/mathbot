@@ -8,9 +8,13 @@ pub use self::error::{Error, Result};
 
 use std::env;
 use bot::Bot;
+use command::Command;
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
+macro_rules! vec_of_strings {
+    ($($x:expr),*) => (vec![$($x.to_string()),*]);
+}
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()>{
@@ -19,8 +23,13 @@ async fn main() -> color_eyre::eyre::Result<()>{
 
     //initiate bot with prefix
     let bot = Bot::new("dev ")
-        .register(commands::misc::test)
-    ;
+        .register(
+            Command::new(
+                commands::misc::test, 
+                vec_of_strings!["test", "test2"], 
+                command::CommandGroup::Test,
+            )
+        );
 
     let token = env::var("DEV_TOKEN").expect("Invalid environment token");
 

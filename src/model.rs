@@ -6,7 +6,7 @@ pub struct ModelController {
 
 
 impl ModelController {
-    pub fn new(bot: Bot) -> Self {
+    pub fn new(_bot: Bot) -> Self {
         Self {
             
         }

@@ -27,7 +27,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
             Command::new(
                 commands::misc::test, 
                 vec_of_strings!["test", "test2"], 
-                command::CommandGroup::Test,
+                command::CommandType::RootCommand { category: (command::CommandCategory::Test) },
             )
         );
 

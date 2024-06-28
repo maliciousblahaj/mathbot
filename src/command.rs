@@ -1,7 +1,7 @@
 use std::future::Future;
 
 use crate::Result;
-use serenity::all::{Context, Message};
+use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 
 /// The category a root command can have.
 /// 
@@ -25,25 +25,31 @@ pub enum CommandType {
     SubCommand{parent: Box<Command>}
 }
 
-pub struct Command
-    //F: Future<Output = Result<()>>,
-{
-    handle: Box<fn(CommandParams) -> dyn Future<Output = Result<()>>>,
-    aliases: Vec<String>,
-    cmd_type: CommandType,
 
-    //TODO: add documentation for commands (for help menu)
+type CommandHandler = Box<dyn FnMut(CommandParams) -> BoxFuture<'static, Result<()>> + Send>;
+
+//TODO: add documentation for commands (for help menu)
+/// A Command's name is the 0th element of the aliases vector
+pub struct Command
+{
+    pub handle: CommandHandler,
+    pub aliases: Vec<String>,
+    pub cmd_type: CommandType,
 }
 
-impl Command {
-    pub fn new(
-        handle: fn(CommandParams) -> dyn Future<Output = Result<()>>,
-        aliases: Vec<String>,
-        cmd_type: CommandType,
-    ) -> Self 
+impl Command
+{
+    pub fn new<T> (
+        handle: fn(CommandParams) -> T, 
+        aliases: Vec<String>, 
+        cmd_type: CommandType
+    ) -> Self
+    where 
+        T: Future<Output = Result<()>> + 'static + Send,
     {
+        let handle: CommandHandler = Box::new(move |params| {Box::pin(handle(params))});
         Self {
-            handle: Box::new(handle),
+            handle: Box::new( handle ),
             aliases,
             cmd_type,
         }

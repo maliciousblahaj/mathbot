@@ -4,7 +4,8 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, strum_macros::AsRefStr)]
 pub enum Error {
-    
+    // -- Bot setup errors
+    RegisterCommandAlreadyExists,
     
     // -- Misc errors
     Test,

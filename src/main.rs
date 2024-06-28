@@ -3,6 +3,8 @@ mod commands;
 mod bot;
 mod command;
 mod model;
+mod parser;
+mod logging;
 
 pub use self::error::{Error, Result};
 
@@ -25,7 +27,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
     let bot = Bot::new("dev ")
         .register(
             Command::new(
-                commands::misc::test, 
+                commands::misc::test,
                 vec_of_strings!["test", "test2"], 
                 command::CommandType::RootCommand { category: (command::CommandCategory::Test) },
             )

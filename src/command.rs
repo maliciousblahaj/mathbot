@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{collections::HashMap, future::Future};
 
 use crate::Result;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
@@ -19,10 +19,11 @@ pub enum CommandCategory {
 
 /// A command can either be a root command or a subcommand.
 /// 
-/// Root commands have a category assigned to them, but subcommands cannot.
+/// Root commands have a category assigned to them, but subcommands don't.
+/// Commands form a tree structure, where every command, root or sub, can have a subcommand
 pub enum CommandType {
-    RootCommand{category: CommandCategory, subcommands: Option<Vec<Box<Command>>>},
-    SubCommand,
+    RootCommand {category: CommandCategory, subcommands: Option<HashMap<String, Box<Command>>>},
+    SubCommand {subcommands: Option<HashMap<String, Box<Command>>>},
 }
 
 

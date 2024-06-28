@@ -1,4 +1,4 @@
-use std::{collections::HashMap, future::Future};
+use std::{collections::HashMap, fmt::Display, future::Future};
 
 use crate::Result;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
@@ -73,6 +73,10 @@ impl Command
 
     pub fn get_subcommands(&self) -> Option<&HashMap<String, Box<Command>>> {
         self.subcommands.as_ref()
+    }
+
+    pub fn get_subcommand <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
+        self.get_subcommands()?.get(&name.to_string())
     }
 
 }

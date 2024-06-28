@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
@@ -73,7 +74,7 @@ impl Bot {
     }
     
     fn register_command(&mut self, command: Command) -> Result<()>{
-        let name = command.aliases[0].clone();
+        let name = command.get_aliases()[0].clone();
         if self.commands.contains_key(&name) {
             return Err(Error::RegisterCommandAlreadyExists);
         }
@@ -82,11 +83,16 @@ impl Bot {
         Ok(())
     }
 
-    pub fn prefix(&self) -> &str{
+    pub fn get_prefix(&self) -> &str{
         &self.prefix
     }
 
-    pub fn commands(&self) -> &HashMap<String, Command> {
+    pub fn get_commands(&self) -> &HashMap<String, Command> {
         &self.commands
     }
+
+    pub fn get_command <S: AsRef<str> + Display>(&self, name: S) -> Option<&Command> {
+        self.commands.get(&name.to_string())
+    }
+
 }

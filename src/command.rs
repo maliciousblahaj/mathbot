@@ -22,8 +22,8 @@ pub enum CommandCategory {
 /// Root commands have a category assigned to them, but subcommands don't.
 /// Commands form a tree structure, where every command, root or sub, can have a subcommand
 pub enum CommandType {
-    RootCommand {category: CommandCategory, subcommands: Option<HashMap<String, Box<Command>>>},
-    SubCommand {subcommands: Option<HashMap<String, Box<Command>>>},
+    RootCommand {category: CommandCategory},
+    SubCommand,
 }
 
 
@@ -33,9 +33,10 @@ type CommandHandler = Box<dyn FnMut(CommandParams) -> BoxFuture<'static, Result<
 /// A Command's name is the 0th element of the aliases vector
 pub struct Command
 {
-    pub handle: CommandHandler,
-    pub aliases: Vec<String>,
-    pub cmd_type: CommandType,
+    handle: CommandHandler,
+    aliases: Vec<String>,
+    cmd_type: CommandType,
+    subcommands: Option<HashMap<String, Box<Command>>>,
 }
 
 impl Command
@@ -43,7 +44,8 @@ impl Command
     pub fn new<T> (
         handle: fn(CommandParams) -> T, 
         aliases: Vec<String>, 
-        cmd_type: CommandType
+        cmd_type: CommandType,
+        subcommands: Option<HashMap<String, Box<Command>>>,
     ) -> Self
     where 
         T: Future<Output = Result<()>> + 'static + Send + Sync,
@@ -53,8 +55,26 @@ impl Command
             handle: Box::new( handle ),
             aliases,
             cmd_type,
+            subcommands,
         }
     }
+
+    pub async fn run(&mut self, params: CommandParams) -> Result<()> {
+        (self.handle)(params).await
+    }
+
+    pub fn get_aliases(&self) -> &Vec<String> {
+        &self.aliases
+    }
+
+    pub fn get_cmd_type(&self) -> &CommandType {
+        &self.cmd_type
+    }
+
+    pub fn get_subcommands(&self) -> Option<&HashMap<String, Box<Command>>> {
+        self.subcommands.as_ref()
+    }
+
 }
 
 

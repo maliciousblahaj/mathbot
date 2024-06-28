@@ -6,21 +6,17 @@ use crate::logging::log;
 use crate::{Result,Error, command::Command};
 
 pub struct Bot {
-    global: Arc<Mutex<Global>>,
-}
-
-#[async_trait]
-impl EventHandler for Bot {
-    async fn message(&self, ctx: Context, msg: Message) {
-        if let Err(E) = self.handle_message(ctx, msg).await {
-            
-        }
-    }
+    prefix: String,
+    commands: HashMap<String, Command>,
+    pub global: Arc<Mutex<Global>>,
 }
 
 impl Bot {
     async fn handle_message(&self, ctx: Context, msg: Message) -> Result<()>{
         log(&msg.content);
+
+        
+        
         if msg.content == "dev test" {
             if let Err(why) = msg.channel_id.say(&ctx.http, "Hello world!").await {
                 println!("Error sending message: {why:?}");
@@ -32,23 +28,51 @@ impl Bot {
 
 
 pub struct Global {
-    prefix: String,
-    commands: HashMap<String, Command>
     //TODO: Add modelcontroller to this
 }
 
 impl Global {
-    pub fn new(prefix: String) -> Self {
+    pub fn new() -> Self {
         Global {
-            prefix,
-            commands: HashMap::new(),
         }
     }
 
-    pub fn register_command(
-        &mut self,
+
+}
+
+
+
+#[async_trait]
+impl EventHandler for Bot {
+    async fn message(&self, ctx: Context, msg: Message) {
+        if let Err(E) = self.handle_message(ctx, msg).await {
+            log(E);
+        }
+    }
+}
+
+impl Bot {
+    pub fn new(prefix: &str) -> Self {
+        Self {
+            prefix: prefix.to_string(),
+            commands: HashMap::new(),
+            global: Arc::new(Mutex::new(
+                Global::new()
+            )),
+        }
+    }
+
+    /// Register a command to Bot.commands (builder pattern)
+    pub fn register(
+        mut self,
         command: Command,
-    ) -> Result<()> {
+    ) -> Self {
+        self.register_command(command).unwrap();
+
+        self
+    }
+    
+    fn register_command(&mut self, command: Command) -> Result<()>{
         let name = command.aliases[0].clone();
         if self.commands.contains_key(&name) {
             return Err(Error::RegisterCommandAlreadyExists);
@@ -57,28 +81,12 @@ impl Global {
         self.commands.insert(name, command);
         Ok(())
     }
-}
 
-
-
-
-impl Bot {
-    pub fn new(prefix: &str) -> Self {
-        Self {
-            global: Arc::new(Mutex::new(
-                Global::new(prefix.to_string())
-            ))
-        }
+    pub fn prefix(&self) -> &str{
+        &self.prefix
     }
 
-    /// Register a command to Bot.commands (builder pattern)
-    pub fn register(
-        self,
-        command: Command,
-    ) -> Self {
-        self.global.lock().expect("Global Mutex is poisoned (register)")
-            .register_command(command).expect("Failed to register command");
-
-        self
+    pub fn commands(&self) -> &HashMap<String, Command> {
+        &self.commands
     }
 }

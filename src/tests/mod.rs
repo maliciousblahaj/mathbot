@@ -54,7 +54,7 @@ fn makebot() -> Bot {
     let commands = testcommands::setupcommands();
 
     let bot = {
-        let mut bot = Some(Bot::new("!"));
+        let mut bot = Some(Bot::new("dev "));
         for command in commands {
             bot = Some(bot.take().unwrap().register(command))
         }

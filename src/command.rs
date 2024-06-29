@@ -156,12 +156,21 @@ impl fmt::Debug for Command {
     }
 }
 
-/// Struct for parameters and context to a command
+/// Struct for parameters to a command
 /// 
-/// will include things like args in the future
+/// Includes args, context, and message
 pub struct CommandParams {
+    args: Vec<String>,
     ctx: Context, 
     msg: Message,
+}
 
-    // TODO: add more things like args
+impl CommandParams {
+    pub fn new(args: Vec<String>, ctx: Context, msg: Message) -> Self {
+        Self {
+            args,
+            ctx,
+            msg,
+        }
+    }
 }

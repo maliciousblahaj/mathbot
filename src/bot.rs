@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
 
-use crate::command::CommandMap;
+use crate::command::{CommandMap, CommandParams};
 use crate::logging::log;
 use crate::{Result,Error, command::Command};
 
@@ -18,13 +18,16 @@ impl Bot {
     async fn handle_message(&self, ctx: Context, msg: Message) -> Result<()>{
         log(&msg.content);
 
+        let parsed = match self.parse_message(&msg.content) {
+            //if the message is not a command, return
+            None => {return Ok(());},
+            Some(command) => command,
+        };
+
+        let params = CommandParams::new(parsed.args, ctx, msg);
         
         
-        if msg.content == "dev test" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Hello world!").await {
-                println!("Error sending message: {why:?}");
-            }
-        }
+
         Ok(())
     }
 }

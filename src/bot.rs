@@ -5,13 +5,13 @@ use serenity::{all::{Context, EventHandler, Message}, async_trait};
 
 use crate::command::{CommandMap, CommandParams};
 use crate::logging::log;
-use crate::{Result,Error, command::Command};
+use crate::{Result, Error, command::Command};
 
 #[derive(Debug)]
 pub struct Bot {
     prefix: String,
     commands: CommandMap,
-    pub global: Arc<Mutex<Global>>,
+    state: Arc<Mutex<GlobalState>>,
 }
 
 impl Bot {
@@ -24,7 +24,7 @@ impl Bot {
             Some(command) => command,
         };
 
-        let params = CommandParams::new(parsed.args, ctx, msg);
+        let params = CommandParams::new(parsed.args, ctx, msg, self.get_global(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
 
         command.run(params).await
@@ -33,17 +33,16 @@ impl Bot {
 
 
 #[derive(Debug)]
-pub struct Global {
+pub struct GlobalState {
     //TODO: Add modelcontroller to this
 }
 
-impl Global {
+impl GlobalState {
     pub fn new() -> Self {
-        Global {
+        GlobalState {
+            
         }
     }
-
-
 }
 
 
@@ -62,8 +61,8 @@ impl Bot {
         Self {
             prefix: prefix.to_string(),
             commands: CommandMap::new(),
-            global: Arc::new(Mutex::new(
-                Global::new()
+            state: Arc::new(Mutex::new(
+                GlobalState::new()
             )),
         }
     }
@@ -85,6 +84,10 @@ impl Bot {
 
     pub fn get_commands(&self) -> &CommandMap {
         &self.commands
+    }
+
+    pub fn get_global(&self) -> Arc<Mutex<GlobalState>> {
+        (&self.state).clone()
     }
 
 }

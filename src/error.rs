@@ -10,6 +10,7 @@ pub enum Error {
     
     // -- Bot run errors
     FailedToSendMessage,
+    NoCommandHandle,
 
     // -- Misc errors
     Test,

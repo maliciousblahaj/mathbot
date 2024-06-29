@@ -1,13 +1,15 @@
 use core::fmt;
-use std::{cell::RefCell, collections::HashMap, fmt::Display, future::Future};
-use crate::{Error, Result};
+use std::{cell::RefCell, collections::HashMap, fmt::Display, future::Future, hash::Hash, string, sync::{Arc, Mutex}};
+use crate::{bot::{Bot, GlobalState}, Error, Result};
+use indexmap::IndexMap;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
+use strum::IntoEnumIterator;
 
 /// The category a root command can have.
 /// 
 /// Having the category of Admin means the command only generates in the help menu for admins
 /// and having the category of Test means the command does not show up in the help menu at all
-#[derive(Debug)]
+#[derive(Debug, Clone, strum_macros::AsRefStr, strum_macros::EnumIter)]
 pub enum CommandCategory {
     Info,
     User,
@@ -18,22 +20,51 @@ pub enum CommandCategory {
     Test,
 }
 
+impl CommandCategory {
+    pub fn get_string(&self) -> String {
+        self.as_ref().to_string()
+    }
+}
+
 /// A command can either be a root command or a subcommand.
 /// 
 /// Root commands have a category assigned to them, but subcommands don't.
 /// Commands form a tree structure, where every command, root or sub, can have a subcommand
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CommandType {
     RootCommand {category: CommandCategory},
     SubCommand,
 }
 
+///If a command index is root, it groups command names by their categories
+/// else just by name
+#[derive(Debug, Clone)]
+pub enum CommandIndex {
+    Root(IndexMap<String, Option<Vec<String>>>),
+    Sub(Vec<String>),
+}
 
+impl CommandIndex {
+    pub fn new(cmd_type: &CommandType) -> Self {
+        match cmd_type {
+            CommandType::RootCommand { category: _ } => {    
+                let mut map = IndexMap::new();
+                for category in CommandCategory::iter() {
+                    map.insert(category.get_string(), None);
+                }
+                
+                Self::Root(map)
+            },
+            CommandType::SubCommand => Self::Sub(Vec::new()),
+        }
+    }
+}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CommandMap {
     commands: HashMap<String, Box<Command>>,
     command_map: HashMap<String, String>,
+    command_index: Option<CommandIndex>,
 }
 
 impl CommandMap {
@@ -41,6 +72,7 @@ impl CommandMap {
         Self {
             commands: HashMap::new(),
             command_map: HashMap::new(),
+            command_index: None,
         }
     }
 
@@ -57,6 +89,12 @@ impl CommandMap {
         &self.command_map
     }
 
+    /// Get the index of a CommandMap
+    /// If the CommandMap contains root commands, it will list
+    pub fn get_command_index(&self) -> Option<&CommandIndex> {
+        self.command_index.as_ref()
+    }
+
     /// Get a command by its name or alias
     pub fn get_command_by_alias <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
         self.get_command(self.command_map.get(&name.to_string())?)
@@ -66,6 +104,11 @@ impl CommandMap {
     pub fn register_command(&mut self, command: Command) -> Result<()>{
         let aliases = command.get_aliases();
         let name = aliases[0].clone();
+
+        if self.command_index.is_none() {
+            self.command_index = Some(CommandIndex::new(command.get_cmd_type()));
+        }
+
         if self.commands.contains_key(&name) {
             return Err(Error::RegisterCommandAlreadyExists);
         }
@@ -87,9 +130,10 @@ type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>
 
 //TODO: add documentation for commands (for help menu)
 /// A Command's name is the 0th element of the aliases vector
+/// Cloning a command makes its handle value None, making its run method return error
 pub struct Command
 {
-    handle: CommandHandler,
+    handle: Option<CommandHandler>,
     aliases: Vec<String>,
     cmd_type: CommandType,
     subcommands: Option<CommandMap>,
@@ -107,7 +151,7 @@ impl Command
     {
         let handle: CommandHandler = Box::new(move |params| {Box::pin(handle(params))});
         Self {
-            handle,
+            handle: Some(handle),
             aliases,
             cmd_type,
             subcommands: None,
@@ -115,7 +159,7 @@ impl Command
     }
 
     pub async fn run(&self, params: CommandParams) -> Result<()> {
-        (self.handle)(params).await
+        (self.handle.as_ref().ok_or(Error::NoCommandHandle)?)(params).await
     }
 
     pub fn get_aliases(&self) -> &Vec<String> {
@@ -156,21 +200,38 @@ impl fmt::Debug for Command {
     }
 }
 
+impl Clone for Command {
+    fn clone(&self) -> Self {
+        Self {
+            handle: None,
+            aliases: self.aliases.clone(),
+            cmd_type: self.cmd_type.clone(),
+            subcommands: self.subcommands.clone(),
+        }
+    }
+}
+
 /// Struct for parameters to a command
 /// 
 /// Includes args, context, and message
-pub struct CommandParams {
+pub struct CommandParams{
     pub args: Vec<String>,
     pub ctx: Context, 
     pub msg: Message,
+    pub state: Arc<Mutex<GlobalState>>,
+    pub bot_prefix: String,
+    pub bot_commands: CommandMap,
 }
 
 impl CommandParams {
-    pub fn new(args: Vec<String>, ctx: Context, msg: Message) -> Self {
+    pub fn new(args: Vec<String>, ctx: Context, msg: Message, state: Arc<Mutex<GlobalState>>, bot_prefix: String, bot_commands: CommandMap) -> Self {
         Self {
             args,
             ctx,
             msg,
+            state,
+            bot_prefix,
+            bot_commands,
         }
     }
 }

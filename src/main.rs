@@ -5,13 +5,14 @@ mod command;
 mod model;
 mod parser;
 mod logging;
+mod appearance;
 
 #[cfg(test)]
 mod tests;
 
 pub use self::error::{Error, Result};
 
-use std::env;
+use std::{env, sync::Arc};
 use bot::Bot;
 use command::Command;
 use serenity::{all::GatewayIntents, Client};

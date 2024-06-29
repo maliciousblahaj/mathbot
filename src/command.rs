@@ -1,12 +1,14 @@
+use core::fmt;
 use std::{collections::HashMap, fmt::Display, future::Future};
 
-use crate::Result;
+use crate::{Error, Result};
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 
 /// The category a root command can have.
 /// 
 /// Having the category of Admin means the command only generates in the help menu for admins
 /// and having the category of Test means the command does not show up in the help menu at all
+#[derive(Debug)]
 pub enum CommandCategory {
     Info,
     User,
@@ -21,6 +23,7 @@ pub enum CommandCategory {
 /// 
 /// Root commands have a category assigned to them, but subcommands don't.
 /// Commands form a tree structure, where every command, root or sub, can have a subcommand
+#[derive(Debug)]
 pub enum CommandType {
     RootCommand {category: CommandCategory},
     SubCommand,
@@ -45,7 +48,6 @@ impl Command
         handle: fn(CommandParams) -> T, 
         aliases: Vec<String>, 
         cmd_type: CommandType,
-        subcommands: Option<HashMap<String, Box<Command>>>,
     ) -> Self
     where 
         T: Future<Output = Result<()>> + 'static + Send + Sync,
@@ -55,7 +57,7 @@ impl Command
             handle: Box::new( handle ),
             aliases,
             cmd_type,
-            subcommands,
+            subcommands: None,
         }
     }
 
@@ -79,8 +81,42 @@ impl Command
         self.get_subcommands()?.get(&name.to_string())
     }
 
+    pub fn register(
+        mut self,
+        command: Command,
+    ) -> Self {
+        self.register_subcommand(command).unwrap();
+
+        self
+    }
+    
+    fn register_subcommand(&mut self, command: Command) -> Result<()>{
+        if self.subcommands.is_none() {
+            self.subcommands = Some(HashMap::new());
+        }
+
+        let subcommands = self.subcommands.as_mut().unwrap();
+
+        let name = command.get_aliases()[0].clone();
+        if subcommands.contains_key(&name) {
+            return Err(Error::RegisterSubcommandAlreadyExists);
+        }
+
+        subcommands.insert(name, Box::new(command));
+        Ok(())
+    }
+
 }
 
+impl fmt::Debug for Command {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Command")
+        .field("aliases", &self.aliases)
+        .field("type", &self.cmd_type)
+        .field("subcommands", &self.subcommands.as_ref().map(|s_com_hashmap| {s_com_hashmap.len()}))
+        .finish()
+    }
+}
 
 /// Struct for parameters and context to a command
 /// 

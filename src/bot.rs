@@ -9,6 +9,7 @@ use crate::{Result,Error, command::Command};
 pub struct Bot {
     prefix: String,
     commands: HashMap<String, Command>,
+    command_map: HashMap<String, String>,
     pub global: Arc<Mutex<Global>>,
 }
 
@@ -57,6 +58,7 @@ impl Bot {
         Self {
             prefix: prefix.to_string(),
             commands: HashMap::new(),
+            command_map: HashMap::new(),
             global: Arc::new(Mutex::new(
                 Global::new()
             )),
@@ -78,7 +80,9 @@ impl Bot {
         if self.commands.contains_key(&name) {
             return Err(Error::RegisterCommandAlreadyExists);
         }
-
+        for alias in command.get_aliases(){
+            self.command_map.insert(alias.clone(), name.clone()).ok_or(Error::RegisterAliasAlreadyExists)?;
+        }
         self.commands.insert(name, command);
         Ok(())
     }
@@ -93,6 +97,10 @@ impl Bot {
 
     pub fn get_command <S: AsRef<str> + Display>(&self, name: S) -> Option<&Command> {
         self.commands.get(&name.to_string())
+    }
+
+    pub fn get_command_map(&self) -> &HashMap<String, String> {
+        &self.command_map
     }
 
 }

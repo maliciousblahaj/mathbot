@@ -6,6 +6,9 @@ mod model;
 mod parser;
 mod logging;
 
+#[cfg(test)]
+mod tests;
+
 pub use self::error::{Error, Result};
 
 use std::env;
@@ -30,7 +33,6 @@ async fn main() -> color_eyre::eyre::Result<()>{
                 commands::misc::test,
                 vec_of_strings!["test", "test2"], 
                 command::CommandType::RootCommand { category: (command::CommandCategory::Test) },
-                None,
             )
         );
 

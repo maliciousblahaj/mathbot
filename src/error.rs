@@ -6,6 +6,8 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub enum Error {
     // -- Bot setup errors
     RegisterCommandAlreadyExists,
+    RegisterAliasAlreadyExists,
+    RegisterSubcommandAlreadyExists,
     
     // -- Misc errors
     Test,

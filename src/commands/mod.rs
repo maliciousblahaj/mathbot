@@ -5,14 +5,12 @@ pub mod math;
 pub mod misc;
 pub mod info;
 
-macro_rules! vec_of_strings {
-    ($($x:expr),*) => (vec![$($x.to_string()),*]);
-}
+use crate::vec_of_strings;
 
 async fn help(params: CommandParams) -> Result<()> {
     //TODO: implement specific command help
     let prefix = &params.bot_prefix;
-    
+
     let embed = appearance::Embed::BaseEmbed(&params)
         .title("Help menu")
         .description(format!("Here are all of the base commands. Write `{prefix}help {{command}}` to learn more about the commands"))

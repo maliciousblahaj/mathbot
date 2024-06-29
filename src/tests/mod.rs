@@ -2,16 +2,13 @@ use std::io::Write;
 
 use command::CommandType;
 
-use crate::command::CommandParams;
-
-use super::*;
-
-macro_rules! vec_of_strings {
-    ($($x:expr),*) => (vec![$($x.to_string()),*]);
-}
+use crate::bot::Bot;
+use crate::{command::{self, CommandParams}, Result};
 
 mod testcommands {
-    use command::CommandCategory;
+    use command::{Command, CommandCategory};
+
+    use crate::vec_of_strings;
 
     use super::*;
 

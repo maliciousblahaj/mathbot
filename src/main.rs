@@ -18,6 +18,7 @@ use command::Command;
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
+#[macro_export]
 macro_rules! vec_of_strings {
     ($($x:expr),*) => (vec![$($x.to_string()),*]);
 }

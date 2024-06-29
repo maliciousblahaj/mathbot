@@ -1,6 +1,6 @@
 use core::fmt;
-use std::{cell::RefCell, collections::HashMap, fmt::Display, future::Future, hash::Hash, string, sync::{Arc, Mutex}};
-use crate::{bot::{Bot, GlobalState}, Error, Result};
+use std::{collections::HashMap, fmt::Display, future::Future, sync::{Arc, Mutex}};
+use crate::{bot::GlobalState, Error, Result};
 use indexmap::IndexMap;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
@@ -58,6 +58,24 @@ impl CommandIndex {
             CommandType::SubCommand => Self::Sub(Vec::new()),
         }
     }
+    
+    pub fn insert(&mut self, command: &Command) -> Result<()>{
+        match self {
+            Self::Root(map) => {
+                let key = match command.get_cmd_type() {
+                    CommandType::RootCommand{category} => category,
+                    _ => {return Err(Error::IncompatibleCommandTypes)}
+                }.get_string();
+                let cmd_vec = map.get_mut(&key)
+                    .ok_or(Error::CommandCategoryKeyDoesntExist)?
+                    .as_mut()
+                    .ok_or(Error::CommandCategoryVecDoesntExist)?;
+                cmd_vec.push(command.get_aliases()[0].to_string());
+            },
+            Self::Sub(cmd_vec) => {cmd_vec.push(command.get_aliases()[0].to_string())}
+        };
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -90,7 +108,6 @@ impl CommandMap {
     }
 
     /// Get the index of a CommandMap
-    /// If the CommandMap contains root commands, it will list
     pub fn get_command_index(&self) -> Option<&CommandIndex> {
         self.command_index.as_ref()
     }
@@ -121,6 +138,7 @@ impl CommandMap {
             self.command_map.insert(alias.clone(), name.clone());
         }
 
+        self.command_index.as_mut().ok_or(Error::CommandIndexDoesntExist)?.insert(&command)?;
         self.commands.insert(name, Box::new(command));
         Ok(())
     }

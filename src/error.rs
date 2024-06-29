@@ -7,6 +7,10 @@ pub enum Error {
     // -- Bot setup errors
     RegisterCommandAlreadyExists,
     RegisterAliasAlreadyExists,
+    IncompatibleCommandTypes,
+    CommandCategoryKeyDoesntExist,
+    CommandCategoryVecDoesntExist,
+    CommandIndexDoesntExist,
     
     // -- Bot run errors
     FailedToSendMessage,

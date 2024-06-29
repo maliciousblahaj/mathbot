@@ -7,6 +7,8 @@ pub mod info;
 
 use crate::vec_of_strings;
 
+
+//TODO: finish this command
 async fn help(params: CommandParams) -> Result<()> {
     //TODO: implement specific command help
     let prefix = &params.bot_prefix;

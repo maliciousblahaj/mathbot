@@ -32,6 +32,7 @@ pub enum CommandType {
 
 type CommandHandler = Box<dyn FnMut(CommandParams) -> BoxFuture<'static, Result<()>> + Send + Sync>;
 
+#[derive(Debug)]
 pub struct CommandMap {
     commands: HashMap<String, Box<Command>>,
     command_map: HashMap<String, String>,
@@ -49,6 +50,7 @@ impl CommandMap {
         &self.commands
     }
 
+    /// Get a command by its name
     pub fn get_command <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
         self.commands.get(&name.to_string())
     }
@@ -57,8 +59,29 @@ impl CommandMap {
         &self.command_map
     }
 
+    /// Get a command by its name or alias
     pub fn get_command_by_alias <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
         self.get_command(self.command_map.get(&name.to_string())?)
+    }
+
+    /// Registers a command by adding it to the commands field, and adding all its aliases to the command_map field
+    pub fn register_command(&mut self, command: Command) -> Result<()>{
+        let aliases = command.get_aliases();
+        let name = aliases[0].clone();
+        if self.commands.contains_key(&name) {
+            return Err(Error::RegisterCommandAlreadyExists);
+        }
+
+        for alias in aliases{
+            if self.command_map.contains_key::<String>(alias) {
+                return Err(Error::RegisterAliasAlreadyExists)
+            }
+
+            self.command_map.insert(alias.clone(), name.clone());
+        }
+
+        self.commands.insert(name, Box::new(command));
+        Ok(())
     }
 }
 
@@ -103,38 +126,23 @@ impl Command
         &self.cmd_type
     }
 
-    pub fn get_subcommands(&self) -> Option<&HashMap<String, Box<Command>>> {
+    pub fn get_subcommands(&self) -> Option<&CommandMap> {
         self.subcommands.as_ref()
     }
 
-    pub fn get_subcommand <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
-        self.get_subcommands()?.get(&name.to_string())
-    }
-
+    ///Register a subcommand to a command
     pub fn register(
         mut self,
         command: Command,
     ) -> Self {
-        self.register_subcommand(command).unwrap();
+        if self.subcommands.is_none() {
+            self.subcommands = Some(CommandMap::new())
+        }
+        self.subcommands.as_mut().unwrap().register_command(command).unwrap();
 
         self
     }
-    
-    fn register_subcommand(&mut self, command: Command) -> Result<()>{
-        if self.subcommands.is_none() {
-            self.subcommands = Some(HashMap::new());
-        }
 
-        let subcommands = self.subcommands.as_mut().unwrap();
-
-        let name = command.get_aliases()[0].clone();
-        if subcommands.contains_key(&name) {
-            return Err(Error::RegisterSubcommandAlreadyExists);
-        }
-
-        subcommands.insert(name, Box::new(command));
-        Ok(())
-    }
 
 }
 
@@ -143,7 +151,7 @@ impl fmt::Debug for Command {
         f.debug_struct("Command")
         .field("aliases", &self.aliases)
         .field("type", &self.cmd_type)
-        .field("subcommands", &self.subcommands.as_ref().map(|s_com_hashmap| {s_com_hashmap.len()}))
+        .field("subcommands", &self.subcommands.as_ref().map(|s_com_map| {s_com_map.get_commands().len()}))
         .finish()
     }
 }

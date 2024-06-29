@@ -3,14 +3,14 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
 
+use crate::command::CommandMap;
 use crate::logging::log;
 use crate::{Result,Error, command::Command};
 
 #[derive(Debug)]
 pub struct Bot {
     prefix: String,
-    commands: HashMap<String, Command>,
-    command_map: HashMap<String, String>,
+    commands: CommandMap,
     pub global: Arc<Mutex<Global>>,
 }
 
@@ -59,8 +59,7 @@ impl Bot {
     pub fn new(prefix: &str) -> Self {
         Self {
             prefix: prefix.to_string(),
-            commands: HashMap::new(),
-            command_map: HashMap::new(),
+            commands: CommandMap::new(),
             global: Arc::new(Mutex::new(
                 Global::new()
             )),
@@ -72,46 +71,18 @@ impl Bot {
         mut self,
         command: Command,
     ) -> Self {
-        self.register_command(command).unwrap();
+        self.commands.register_command(command).unwrap();
 
         self
     }
-    
-    fn register_command(&mut self, command: Command) -> Result<()>{
-        let name = command.get_aliases()[0].clone();
-        if self.commands.contains_key(&name) {
-            return Err(Error::RegisterCommandAlreadyExists);
-        }
-        for alias in command.get_aliases(){
-            if self.command_map.contains_key(alias) {
-                return Err(Error::RegisterAliasAlreadyExists)
-            }
 
-            self.command_map.insert(alias.clone(), name.clone());
-        }
-        self.commands.insert(name, command);
-        Ok(())
-    }
 
     pub fn get_prefix(&self) -> &str{
         &self.prefix
     }
 
-    pub fn get_commands(&self) -> &HashMap<String, Command> {
+    pub fn get_commands(&self) -> &CommandMap {
         &self.commands
     }
-
-    pub fn get_command <S: AsRef<str> + Display>(&self, name: S) -> Option<&Command> {
-        self.commands.get(&name.to_string())
-    }
-
-    pub fn get_command_map(&self) -> &HashMap<String, String> {
-        &self.command_map
-    }
-
-    pub fn get_command_by_alias <S: AsRef<str> + Display>(&self, name: S) -> Option<&Command> {
-        self.get_command(self.command_map.get(&name.to_string())?)
-    }
-
 
 }

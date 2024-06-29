@@ -91,6 +91,6 @@ fn parse_commands() {
         
         let parsed = bot.parse_message(s);
         
-        println!("{parsed:?}");
+        println!("{s}: {parsed:?}");
     }
 }

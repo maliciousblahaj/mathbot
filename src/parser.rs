@@ -12,12 +12,13 @@ impl Bot {
 
         let mut parts = message[1..].split_whitespace().map(|arg| arg.to_string()).peekable();
 
-        let mut command = self.get_command(parts.next()?)?;
+        let mut command = self.get_commands().get_command_by_alias(parts.next()?)?;
         loop {
 
-            command = match (|| -> Option<&Box<Command>> {Some(command.get_subcommand(parts.peek()?)?)}()) {
+            command = match (|| -> Option<&Box<Command>> {Some(command.get_subcommands()?.get_command_by_alias(parts.peek()?)?)}()) {
+                //The closure will return None and exit the loop if the next part is not a command 
                 None => {break;},
-                Some(cmd) => cmd.as_ref(),
+                Some(cmd) => cmd,
             };
             parts.next();
         }

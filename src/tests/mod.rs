@@ -64,9 +64,15 @@ fn makebot() -> Bot {
     bot
 }
 
-//#[ignore]
 #[test]
-fn parsecommands() {
+fn setup_bot() {
+    let bot = makebot();
+    println!("{bot:?}");
+}
+
+#[ignore]
+#[test]
+fn parse_commands() {
     let bot = makebot();
 
     //TODO: replace with actual unit tests

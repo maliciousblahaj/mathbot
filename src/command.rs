@@ -32,6 +32,36 @@ pub enum CommandType {
 
 type CommandHandler = Box<dyn FnMut(CommandParams) -> BoxFuture<'static, Result<()>> + Send + Sync>;
 
+pub struct CommandMap {
+    commands: HashMap<String, Box<Command>>,
+    command_map: HashMap<String, String>,
+}
+
+impl CommandMap {
+    pub fn new() -> Self {
+        Self {
+            commands: HashMap::new(),
+            command_map: HashMap::new(),
+        }
+    }
+
+    pub fn get_commands(&self) -> &HashMap<String, Box<Command>> {
+        &self.commands
+    }
+
+    pub fn get_command <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
+        self.commands.get(&name.to_string())
+    }
+
+    pub fn get_command_map(&self) -> &HashMap<String, String> {
+        &self.command_map
+    }
+
+    pub fn get_command_by_alias <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
+        self.get_command(self.command_map.get(&name.to_string())?)
+    }
+}
+
 //TODO: add documentation for commands (for help menu)
 /// A Command's name is the 0th element of the aliases vector
 pub struct Command
@@ -39,7 +69,7 @@ pub struct Command
     handle: CommandHandler,
     aliases: Vec<String>,
     cmd_type: CommandType,
-    subcommands: Option<HashMap<String, Box<Command>>>,
+    subcommands: Option<CommandMap>,
 }
 
 impl Command

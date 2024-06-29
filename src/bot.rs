@@ -6,6 +6,7 @@ use serenity::{all::{Context, EventHandler, Message}, async_trait};
 use crate::logging::log;
 use crate::{Result,Error, command::Command};
 
+#[derive(Debug)]
 pub struct Bot {
     prefix: String,
     commands: HashMap<String, Command>,
@@ -29,6 +30,7 @@ impl Bot {
 }
 
 
+#[derive(Debug)]
 pub struct Global {
     //TODO: Add modelcontroller to this
 }
@@ -81,7 +83,11 @@ impl Bot {
             return Err(Error::RegisterCommandAlreadyExists);
         }
         for alias in command.get_aliases(){
-            self.command_map.insert(alias.clone(), name.clone()).ok_or(Error::RegisterAliasAlreadyExists)?;
+            if self.command_map.contains_key(alias) {
+                return Err(Error::RegisterAliasAlreadyExists)
+            }
+
+            self.command_map.insert(alias.clone(), name.clone());
         }
         self.commands.insert(name, command);
         Ok(())
@@ -102,5 +108,10 @@ impl Bot {
     pub fn get_command_map(&self) -> &HashMap<String, String> {
         &self.command_map
     }
+
+    pub fn get_command_by_alias <S: AsRef<str> + Display>(&self, name: S) -> Option<&Command> {
+        self.get_command(self.command_map.get(&name.to_string())?)
+    }
+
 
 }

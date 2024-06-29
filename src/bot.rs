@@ -25,10 +25,10 @@ impl Bot {
         };
 
         let params = CommandParams::new(parsed.args, ctx, msg);
-        
-        
+        let command = parsed.command;
 
-        Ok(())
+        command
+        .run(params).await
     }
 }
 

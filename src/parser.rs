@@ -16,7 +16,7 @@ impl Bot {
         let mut command = self.get_commands().get_command_by_alias(parts.next()?)?;
         loop {
 
-            command = match (|| -> Option<&Box<Command>> {Some(command.get_subcommands()?.get_command_by_alias(parts.peek()?)?)}()) {
+            command = match || -> Option<&Box<Command>> {Some(command.get_subcommands()?.get_command_by_alias(parts.peek()?)?)}() {
                 //The closure will return None and exit the loop if the next part is not a command 
                 None => {break;},
                 Some(cmd) => cmd,
@@ -38,6 +38,6 @@ impl Bot {
 #[derive(Debug)]
 pub struct ParsedCommand <'a> {
     pub args: Vec<String>,
-    pub command: &'a Command,
+    pub command: &'a Box<Command>,
 }
 

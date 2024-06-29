@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{collections::HashMap, fmt::Display, future::Future};
+use std::{borrow::BorrowMut, collections::HashMap, fmt::Display, future::Future};
 
 use crate::{Error, Result};
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
@@ -114,8 +114,8 @@ impl Command
         }
     }
 
-    pub async fn run(&mut self, params: CommandParams) -> Result<()> {
-        (self.handle)(params).await
+    pub async fn run(&self, params: CommandParams) -> Result<()> {
+        (&self.handle)(params).await
     }
 
     pub fn get_aliases(&self) -> &Vec<String> {

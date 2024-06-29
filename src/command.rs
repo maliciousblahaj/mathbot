@@ -1,6 +1,5 @@
 use core::fmt;
-use std::{borrow::BorrowMut, collections::HashMap, fmt::Display, future::Future};
-
+use std::{cell::RefCell, collections::HashMap, fmt::Display, future::Future};
 use crate::{Error, Result};
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 
@@ -30,7 +29,6 @@ pub enum CommandType {
 }
 
 
-type CommandHandler = Box<dyn FnMut(CommandParams) -> BoxFuture<'static, Result<()>> + Send + Sync>;
 
 #[derive(Debug)]
 pub struct CommandMap {
@@ -85,6 +83,8 @@ impl CommandMap {
     }
 }
 
+type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + Send + Sync>;
+
 //TODO: add documentation for commands (for help menu)
 /// A Command's name is the 0th element of the aliases vector
 pub struct Command
@@ -103,11 +103,11 @@ impl Command
         cmd_type: CommandType,
     ) -> Self
     where 
-        T: Future<Output = Result<()>> + 'static + Send + Sync,
+        T: Future<Output = Result<()>> + 'static + Send,
     {
         let handle: CommandHandler = Box::new(move |params| {Box::pin(handle(params))});
         Self {
-            handle: Box::new( handle ),
+            handle,
             aliases,
             cmd_type,
             subcommands: None,
@@ -115,7 +115,7 @@ impl Command
     }
 
     pub async fn run(&self, params: CommandParams) -> Result<()> {
-        (&self.handle)(params).await
+        (self.handle)(params).await
     }
 
     pub fn get_aliases(&self) -> &Vec<String> {
@@ -160,9 +160,9 @@ impl fmt::Debug for Command {
 /// 
 /// Includes args, context, and message
 pub struct CommandParams {
-    args: Vec<String>,
-    ctx: Context, 
-    msg: Message,
+    pub args: Vec<String>,
+    pub ctx: Context, 
+    pub msg: Message,
 }
 
 impl CommandParams {

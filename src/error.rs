@@ -8,6 +8,9 @@ pub enum Error {
     RegisterCommandAlreadyExists,
     RegisterAliasAlreadyExists,
     
+    // -- Bot run errors
+    FailedToSendMessage,
+
     // -- Misc errors
     Test,
 }

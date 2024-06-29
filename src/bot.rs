@@ -27,8 +27,7 @@ impl Bot {
         let params = CommandParams::new(parsed.args, ctx, msg);
         let command = parsed.command;
 
-        command
-        .run(params).await
+        command.run(params).await
     }
 }
 

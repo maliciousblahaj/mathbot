@@ -1,9 +1,10 @@
 use core::fmt;
-use std::{collections::HashMap, fmt::Display, future::Future, sync::{Arc, Mutex}};
+use std::{collections::HashMap, fmt::Display, future::Future, sync::Arc};
 use crate::{bot::GlobalState, Error, Result};
 use indexmap::IndexMap;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
+use tokio::sync::Mutex;
 
 /// The category a root command can have.
 /// 
@@ -153,14 +154,14 @@ impl CommandMap {
     }
 }
 
-type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + 'static + Send + Sync>;
+type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + 'static + Send>;
 
 //TODO: add documentation for commands (for help menu)
 /// A Command's name is the 0th element of the aliases vector
 /// Cloning a command makes its handle value None, making its run method return error
 pub struct Command
 {
-    handle: Option<CommandHandler>,
+    handle: Option<Arc<Mutex<CommandHandler>>>,
     aliases: Vec<String>,
     cmd_type: CommandType,
     help: CommandHelp,
@@ -176,11 +177,11 @@ impl Command
         help: CommandHelp,
     ) -> Self
     where 
-        T: Future<Output = Result<()>> + 'static + Send + Sync,
+        T: Future<Output = Result<()>> + 'static + Send,
     {
         let handle: CommandHandler = Box::new(move |params| {Box::pin(handle(params))});
         Self {
-            handle: Some(handle),
+            handle: Some(Arc::new(Mutex::new(handle))),
             aliases,
             cmd_type,
             help,
@@ -189,7 +190,13 @@ impl Command
     }
 
     pub async fn run(&self, params: CommandParams) -> Result<()> {
-        (self.handle.as_ref().ok_or(Error::NoCommandHandle)?)(params).await
+        //all this boilerplate is just because Bot needs to implement Sync
+        let fun = self.handle
+            .as_ref()
+            .ok_or(Error::NoCommandHandle)?
+            .lock().await;
+
+        (fun)(params).await
     }
 
     pub fn get_aliases(&self) -> &Vec<String> {

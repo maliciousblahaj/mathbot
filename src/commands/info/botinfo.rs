@@ -1,8 +1,8 @@
 use mathbot::{appearance::embed::{base_embed, ColorType}, command::CommandParams, get_current_timestamp_secs};
-use mathbot::{send_embed, Error, Result, BOT_VERSION};
+use mathbot::{send_embed, Result, BOT_VERSION};
 
 pub async fn botinfo(params: CommandParams) -> Result<()> {
-    let stateguard = params.state.lock().map_err(|_| Error::PoisonedStateMutex)?;
+    let stateguard = params.state.lock().await;
     let starttime = stateguard.get_start_time().clone();
     drop(stateguard);
 

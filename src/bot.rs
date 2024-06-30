@@ -1,6 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use crate::get_current_timestamp_secs;
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
+use tokio::sync::Mutex;
 
 use crate::command::{CommandMap, CommandParams, CommandType};
 use crate::logging::log;
@@ -78,7 +79,7 @@ impl Bot {
     ) -> Self {
         Self {
             prefix,
-            commands,
+            commands: commands,
             state,
         }
     }
@@ -126,7 +127,7 @@ impl GlobalState {
 #[async_trait]
 impl EventHandler for Bot {
     async fn message(&self, ctx: Context, msg: Message) {
-        if let Err(e) = self.handle_message(ctx, msg).await {
+        if let Err(e) = self.handle_message(ctx, msg).await{
             log(e);
         }
     }

@@ -23,6 +23,7 @@ pub enum Error {
     NoCommandHandle,
     FailedToGetPingTime,
     PoisonedStateMutex,
+    PoisonedCommandMutex,
     FailedToGetSystemTimestamp,
 
 

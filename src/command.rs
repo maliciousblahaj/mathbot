@@ -216,9 +216,25 @@ impl Command
         &self.help
     }
 
+    
+    /// Register multiple subcommands
+    /// 
+    /// For single commands, use register_single
     #[allow(unused)]
-    ///Register a subcommand to a command
     pub fn register(
+        mut self,
+        commands: Vec<Command>,
+    ) -> Result<Self> {
+        for command in commands {
+            self = self.register_single(command)?;
+        }
+
+        Ok(self)
+    }
+
+    /// Register a single subcommand
+    #[allow(unused)]
+    pub fn register_single(
         mut self,
         command: Command,
     ) -> Result<Self> {

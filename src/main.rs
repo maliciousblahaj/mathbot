@@ -13,9 +13,9 @@ mod tests;
 pub use self::error::{Error, Result};
 
 use std::env;
-use bot::Bot;
+use bot::BotBuilder;
 use command::{Command, CommandHelp};
-use commands::{help_command, info::ping_command};
+use commands::info;
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
@@ -30,17 +30,18 @@ async fn main() -> color_eyre::eyre::Result<()>{
     dotenv().expect("Failed to load environment variables");
 
     //initiate bot with prefix
-    let bot = Bot::new("dev ")
-        .register(help_command())?
-        .register(ping_command())?
-        .register(
+    let bot = BotBuilder::new("dev ")
+        .register(info::commands())?
+        .register_single(
             Command::new(
-                commands::misc::test,
+                commands::test::test,
                 vec_of_strings!["test", "test2", "t"], 
                 command::CommandType::RootCommand { category: (command::CommandCategory::Test) },
                 CommandHelp::new("responds with hello world.", ""),
             )
-        )?;
+        )?
+        .build()
+        ;
 
     let token = env::var("DEV_TOKEN").expect("Invalid environment token");
 

@@ -1,9 +1,9 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{vec_of_strings, Result};
-use crate::command::{Command, CommandCategory, CommandHelp, CommandParams, CommandType};
+use crate::Result;
+use crate::command::CommandParams;
 
-async fn ping(params: CommandParams) -> Result<()> {
+pub async fn ping(params: CommandParams) -> Result<()> {
     let systemtime = SystemTime::now();
     let msg_snowflake = params.msg.id.get();
     let msg_timestamp_millis = ((msg_snowflake >> 22) + 1420070400000) as u128;
@@ -13,13 +13,4 @@ async fn ping(params: CommandParams) -> Result<()> {
 
     params.msg.channel_id.say(&params.ctx.http, message).await?;
     Ok(())
-}
-
-pub fn ping_command() -> Command {
-    Command::new(
-        ping,
-        vec_of_strings!("ping", "latency"),
-        CommandType::RootCommand { category: CommandCategory::Info },
-        CommandHelp::new("Check the latency of the bot", ""),
-    )
 }

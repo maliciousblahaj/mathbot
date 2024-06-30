@@ -5,6 +5,62 @@ use crate::command::{CommandMap, CommandParams, CommandType};
 use crate::logging::log;
 use crate::{Result, Error, command::Command};
 
+pub struct BotBuilder {
+    prefix: String,
+    commands: CommandMap,
+    state: Arc<Mutex<GlobalState>>,
+}
+
+impl BotBuilder {
+    pub fn new(prefix: &str) -> Self {
+        Self {
+            prefix: prefix.to_string(),
+            commands: CommandMap::new(),
+            state: Arc::new(Mutex::new(
+                GlobalState::new()
+            )),
+        }
+    }
+
+    /// Register a command
+    pub fn register_single(
+        mut self,
+        command: Command,
+    ) -> Result<Self> {
+        if let CommandType::SubCommand = command.get_cmd_type() {
+            return Err(Error::SubcommandAtRootLevel);
+        }
+        self.commands.register_command(command)?;
+
+        Ok(self)
+    }
+
+    /// Register multiple commands
+    /// 
+    /// For single commands, use register_single
+    pub fn register(
+        mut self,
+        commands: Vec<Command>,
+    ) -> Result<Self> {
+        for command in commands {
+            self = self.register_single(command)?;
+        }
+
+        Ok(self)
+    }
+
+    pub fn build(self) -> Bot {
+        Bot::new(
+            self.prefix,
+            self.commands,
+            self.state,
+        )
+
+    }
+}
+
+
+
 #[derive(Debug)]
 pub struct Bot {
     prefix: String,
@@ -13,6 +69,18 @@ pub struct Bot {
 }
 
 impl Bot {
+    fn new(
+        prefix: String,
+        commands: CommandMap,
+        state: Arc<Mutex<GlobalState>>,
+    ) -> Self {
+        Self {
+            prefix,
+            commands,
+            state,
+        }
+    }
+
     async fn handle_message(&self, ctx: Context, msg: Message) -> Result<()>{
         if !msg.author.bot{
             log(&msg.content);
@@ -24,7 +92,7 @@ impl Bot {
             Some(command) => command,
         };
 
-        let params = CommandParams::new(parsed.args, ctx, msg, self.get_global(), self.get_prefix().to_string(), self.get_commands().clone());
+        let params = CommandParams::new(parsed.args, ctx, msg, self.get_state(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
 
         command.run(params).await
@@ -57,29 +125,6 @@ impl EventHandler for Bot {
 }
 
 impl Bot {
-    pub fn new(prefix: &str) -> Self {
-        Self {
-            prefix: prefix.to_string(),
-            commands: CommandMap::new(),
-            state: Arc::new(Mutex::new(
-                GlobalState::new()
-            )),
-        }
-    }
-
-    /// Register a command to Bot.commands (builder pattern)
-    pub fn register(
-        mut self,
-        command: Command,
-    ) -> Result<Self> {
-        if let CommandType::SubCommand = command.get_cmd_type() {
-            return Err(Error::SubcommandAtRootLevel);
-        }
-        self.commands.register_command(command)?;
-
-        Ok(self)
-    }
-
 
     pub fn get_prefix(&self) -> &str{
         &self.prefix
@@ -89,7 +134,7 @@ impl Bot {
         &self.commands
     }
 
-    pub fn get_global(&self) -> Arc<Mutex<GlobalState>> {
+    pub fn get_state(&self) -> Arc<Mutex<GlobalState>> {
         (&self.state).clone()
     }
 

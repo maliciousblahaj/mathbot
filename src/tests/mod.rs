@@ -2,7 +2,7 @@ use std::io::Write;
 
 use command::CommandType;
 
-use crate::bot::Bot;
+use crate::bot::{Bot, BotBuilder};
 use crate::{command::{self, CommandParams}, Result};
 
 mod testcommands {
@@ -36,7 +36,7 @@ mod testcommands {
             vec_of_strings!("hi", "hello", "haiii", "haii", "hai", "haiiii", "h"),
             CommandType::RootCommand { category: CommandCategory::Test },
             CommandHelp::new("",""),
-        ).register(uwu).unwrap();
+        ).register_single(uwu).unwrap();
 
         let bye = Command::new(
             byecommand,
@@ -55,14 +55,14 @@ fn makebot() -> Bot {
     let commands = testcommands::setupcommands();
 
     let bot = {
-        let mut bot = Some(Bot::new("dev "));
+        let mut bot = Some(BotBuilder::new("dev "));
         for command in commands {
-            bot = Some(bot.take().unwrap().register(command).unwrap())
+            bot = Some(bot.take().unwrap().register_single(command).unwrap())
         }
         bot.take().unwrap()
     };
 
-    bot
+    bot.build()
 }
 
 #[test]

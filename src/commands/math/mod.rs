@@ -3,13 +3,13 @@ use mathbot::{command::{Command, CommandCategory, CommandHelp, CommandType}, vec
 pub mod solve;
 
 pub fn commands() -> Vec<Command> {
-    let rootinfo = CommandType::RootCommand { category: CommandCategory::Math };
-    Vec::from([
+    let sharedtype = CommandType::RootCommand { category: CommandCategory::Math };
+    vec![
         Command::new(
             solve::solve,
             vec_of_strings!("solve", "calculate", "calc", "cal", "sol", "solv"),
-            rootinfo.clone(),
+            sharedtype.clone(),
             CommandHelp::new("Make the bot calculate an expression", " {expression}"),
         ),
-    ])
+    ]
 }

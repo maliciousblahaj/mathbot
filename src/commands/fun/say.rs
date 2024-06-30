@@ -1,4 +1,4 @@
-use mathbot::{command::CommandParams, error::ClientError, logging::log, send_message, Error, Result, SendCtx};
+use mathbot::{command::CommandParams, error::ClientError, send_message, Error, Result, SendCtx};
 
 pub async fn say(params: CommandParams) -> Result<()> {
     if params.args.is_empty() {
@@ -7,7 +7,8 @@ pub async fn say(params: CommandParams) -> Result<()> {
 
     let searchcontent = params.msg.content[params.bot_prefix.len()..].to_string();
     let sayalias = &params.aliassequence[0];
-    let content = &searchcontent[
+    let content = &searchcontent
+        [
         searchcontent.find(sayalias)
         .ok_or(Error::SayAliasNotFoundInMessageContent)? + sayalias.len() + 1 
         ..];

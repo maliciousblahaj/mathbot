@@ -3,13 +3,13 @@ use mathbot::{command::{Command, CommandCategory, CommandHelp, CommandType}, vec
 pub mod say;
 
 pub fn commands() -> Vec<Command> {
-    let rootinfo = CommandType::RootCommand { category: CommandCategory::Fun };
-    Vec::from([
+    let sharedtype = CommandType::RootCommand { category: CommandCategory::Fun };
+    vec![
         Command::new(
             say::say,
             vec_of_strings!("say", "säg"),
-            rootinfo.clone(),
+            sharedtype.clone(),
             CommandHelp::new("Make the bot repeat something you've said (it better not be anything negative towards the admins)", " {something}"),
         ),
-    ])
+    ]
 }

@@ -40,7 +40,7 @@ pub enum CommandType {
 /// else just by name
 #[derive(Debug, Clone)]
 pub enum CommandIndex {
-    Root(IndexMap<String, Option<Vec<String>>>),
+    Root(IndexMap<String, Vec<String>>),
     Sub(Vec<String>),
 }
 
@@ -50,7 +50,7 @@ impl CommandIndex {
             CommandType::RootCommand { category: _ } => {    
                 let mut map = IndexMap::new();
                 for category in CommandCategory::iter() {
-                    map.insert(category.get_string(), None);
+                    map.insert(category.get_string(), Vec::new());
                 }
                 
                 Self::Root(map)
@@ -67,9 +67,7 @@ impl CommandIndex {
                     _ => {return Err(Error::IncompatibleCommandTypes)}
                 }.get_string();
                 let cmd_vec = map.get_mut(&key)
-                    .ok_or(Error::CommandCategoryKeyDoesntExist)?
-                    .as_mut()
-                    .ok_or(Error::CommandCategoryVecDoesntExist)?;
+                    .ok_or(Error::CommandCategoryKeyDoesntExist)?;
                 cmd_vec.push(command.get_aliases()[0].to_string());
             },
             Self::Sub(cmd_vec) => {cmd_vec.push(command.get_aliases()[0].to_string())}
@@ -108,6 +106,7 @@ impl CommandMap {
     }
 
     /// Get the index of a CommandMap
+    /// Will return None if no command index exists
     pub fn get_command_index(&self) -> Option<&CommandIndex> {
         self.command_index.as_ref()
     }
@@ -119,8 +118,7 @@ impl CommandMap {
 
     /// Registers a command by adding it to the commands field, and adding all its aliases to the command_map field
     pub fn register_command(&mut self, command: Command) -> Result<()>{
-        let aliases = command.get_aliases();
-        let name = aliases[0].clone();
+        let name = command.get_name().clone();
 
         if self.command_index.is_none() {
             self.command_index = Some(CommandIndex::new(command.get_cmd_type()));
@@ -130,7 +128,7 @@ impl CommandMap {
             return Err(Error::RegisterCommandAlreadyExists);
         }
 
-        for alias in aliases{
+        for alias in command.get_aliases(){
             if self.command_map.contains_key::<String>(alias) {
                 return Err(Error::RegisterAliasAlreadyExists)
             }
@@ -183,6 +181,10 @@ impl Command
     pub fn get_aliases(&self) -> &Vec<String> {
         &self.aliases
     }
+    
+    pub fn get_name(&self) -> &String {
+        &self.aliases[0]
+    }
 
     pub fn get_cmd_type(&self) -> &CommandType {
         &self.cmd_type
@@ -196,13 +198,16 @@ impl Command
     pub fn register(
         mut self,
         command: Command,
-    ) -> Self {
+    ) -> Result<Self> {
+        if let CommandType::RootCommand { category:_ } = command.get_cmd_type() {
+            return Err(Error::RootCommandAtSubLevel);
+        }
         if self.subcommands.is_none() {
             self.subcommands = Some(CommandMap::new())
         }
         self.subcommands.as_mut().unwrap().register_command(command).unwrap();
 
-        self
+        Ok(self)
     }
 
 

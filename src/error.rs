@@ -1,12 +1,18 @@
 use std::{error, fmt};
 
 pub type Result<T> = core::result::Result<T, Error>;
+use derive_more::From;
+use serenity::prelude::SerenityError;
 
-#[derive(Debug, strum_macros::AsRefStr)]
+
+#[derive(Debug, From, strum_macros::AsRefStr)]
 pub enum Error {
     // -- Bot setup errors
     RegisterCommandAlreadyExists,
     RegisterAliasAlreadyExists,
+    SubcommandAtRootLevel,
+    RootCommandAtSubLevel,
+    SubcommandIndexAtRootLevel,
     IncompatibleCommandTypes,
     CommandCategoryKeyDoesntExist,
     CommandCategoryVecDoesntExist,
@@ -18,6 +24,10 @@ pub enum Error {
 
     // -- Misc errors
     Test,
+
+    // -- External errors
+    #[from]
+    Serenity(SerenityError),
 }
 
 // region:    --- Error boilerplate

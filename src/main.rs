@@ -15,6 +15,7 @@ pub use self::error::{Error, Result};
 use std::{env, sync::Arc};
 use bot::Bot;
 use command::Command;
+use commands::help_command;
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
@@ -30,13 +31,14 @@ async fn main() -> color_eyre::eyre::Result<()>{
 
     //initiate bot with prefix
     let bot = Bot::new("dev ")
+        .register(help_command())?
         .register(
             Command::new(
                 commands::misc::test,
                 vec_of_strings!["test", "test2", "t"], 
                 command::CommandType::RootCommand { category: (command::CommandCategory::Test) },
             )
-        );
+        )?;
 
     let token = env::var("DEV_TOKEN").expect("Invalid environment token");
 

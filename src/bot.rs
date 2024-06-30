@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
 
-use crate::command::{CommandMap, CommandParams};
+use crate::command::{CommandMap, CommandParams, CommandType};
 use crate::logging::log;
 use crate::{Result, Error, command::Command};
 
@@ -16,7 +16,9 @@ pub struct Bot {
 
 impl Bot {
     async fn handle_message(&self, ctx: Context, msg: Message) -> Result<()>{
-        log(&msg.content);
+        if !msg.author.bot{
+            log(&msg.content);
+        }
 
         let parsed = match self.parse_message(&msg.content) {
             //if the message is not a command, return
@@ -71,10 +73,13 @@ impl Bot {
     pub fn register(
         mut self,
         command: Command,
-    ) -> Self {
-        self.commands.register_command(command).unwrap();
+    ) -> Result<Self> {
+        if let CommandType::SubCommand = command.get_cmd_type() {
+            return Err(Error::SubcommandAtRootLevel);
+        }
+        self.commands.register_command(command)?;
 
-        self
+        Ok(self)
     }
 
 

@@ -33,7 +33,7 @@ mod testcommands {
             hicommand, 
             vec_of_strings!("hi", "hello", "haiii", "haii", "hai", "haiiii", "h"),
             CommandType::RootCommand { category: CommandCategory::Test },
-        ).register(uwu);
+        ).register(uwu).unwrap();
 
         let bye = Command::new(
             byecommand,
@@ -53,7 +53,7 @@ fn makebot() -> Bot {
     let bot = {
         let mut bot = Some(Bot::new("dev "));
         for command in commands {
-            bot = Some(bot.take().unwrap().register(command))
+            bot = Some(bot.take().unwrap().register(command).unwrap())
         }
         bot.take().unwrap()
     };

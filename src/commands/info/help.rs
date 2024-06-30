@@ -1,21 +1,18 @@
 use std::fmt::Display;
 
-use serenity::all::{CreateEmbed, CreateMessage};
+use serenity::all::CreateEmbed;
 
-use crate::appearance::embed::{base_embed, ColorType};
-use crate::command::{Command, CommandIndex, CommandParams};
-use crate::parser::parse_command;
-use crate::{Error, Result};
+use mathbot::appearance::embed::{base_embed, ColorType};
+use mathbot::command::{Command, CommandIndex, CommandParams};
+use mathbot::parser::parse_command;
+use mathbot::{send_embed, Error, Result};
 
 pub async fn help(params: CommandParams) -> Result<()> {
     if let Some((command, _, commandsequence)) = parse_command(&params.bot_commands, params.args.clone()){
 
         let embed = help_embed(&params, command, &commandsequence)?;
 
-        let message = CreateMessage::new()
-            .embed(embed);
-
-        params.msg.channel_id.send_message(&params.ctx.http, message).await?;
+        send_embed(embed, &params).await?;
 
         return Ok(());
     }
@@ -48,10 +45,7 @@ pub async fn help(params: CommandParams) -> Result<()> {
         embed = embed.field(name, s, false);
     }
     
-    let message = CreateMessage::new()
-        .embed(embed);
-
-    params.msg.channel_id.send_message(&params.ctx.http, message).await?;
+    send_embed(embed, &params).await?;
 
     Ok(())
 }

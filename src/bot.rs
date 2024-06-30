@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use crate::get_current_timestamp_secs;
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
 
 use crate::command::{CommandMap, CommandParams, CommandType};
@@ -12,14 +13,15 @@ pub struct BotBuilder {
 }
 
 impl BotBuilder {
-    pub fn new(prefix: &str) -> Self {
+    pub fn new(prefix: &str) -> Result<Self> {
+        Ok(
         Self {
             prefix: prefix.to_string(),
             commands: CommandMap::new(),
             state: Arc::new(Mutex::new(
-                GlobalState::new()
+                GlobalState::new()?
             )),
-        }
+        })
     }
 
     /// Register a command
@@ -102,14 +104,20 @@ impl Bot {
 
 #[derive(Debug)]
 pub struct GlobalState {
+    start_time: u64,
     //TODO: Add modelcontroller to this
 }
 
 impl GlobalState {
-    pub fn new() -> Self {
-        GlobalState {
-            
-        }
+    pub fn new() -> Result<Self> {
+        Ok(
+        Self {
+            start_time: get_current_timestamp_secs()?
+        })
+    }
+
+    pub fn get_start_time(&self) -> &u64 {
+        &self.start_time
     }
 }
 

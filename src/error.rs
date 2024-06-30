@@ -1,8 +1,7 @@
-use std::{error, fmt, time::SystemTimeError};
+use std::{error, fmt};
 
 pub type Result<T> = core::result::Result<T, Error>;
 use derive_more::From;
-use serenity::prelude::SerenityError;
 
 
 #[derive(Debug, From, strum_macros::AsRefStr)]
@@ -23,18 +22,13 @@ pub enum Error {
     FailedToSendMessage,
     NoCommandHandle,
     FailedToGetPingTime,
+    PoisonedStateMutex,
+    FailedToGetSystemTimestamp,
 
 
     // -- Misc errors
     Test,
     ImpossibleError, //for when you have already checked if an option is none but you still need to cover the none arm
-
-    // -- External errors
-    #[from]
-    Serenity(SerenityError),
-
-    #[from]
-    StdTime(SystemTimeError),
 }
 
 // region:    --- Error boilerplate

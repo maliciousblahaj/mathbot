@@ -153,7 +153,7 @@ impl CommandMap {
     }
 }
 
-type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + Send + Sync>;
+type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + 'static + Send + Sync>;
 
 //TODO: add documentation for commands (for help menu)
 /// A Command's name is the 0th element of the aliases vector
@@ -176,7 +176,7 @@ impl Command
         help: CommandHelp,
     ) -> Self
     where 
-        T: Future<Output = Result<()>> + 'static + Send,
+        T: Future<Output = Result<()>> + 'static + Send + Sync,
     {
         let handle: CommandHandler = Box::new(move |params| {Box::pin(handle(params))});
         Self {

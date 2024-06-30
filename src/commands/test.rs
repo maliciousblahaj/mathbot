@@ -1,6 +1,6 @@
-use crate::{Result, command::CommandParams};
+use mathbot::{command::CommandParams, send_message, Result};
 
 pub async fn test(params: CommandParams) -> Result<()> {
-    params.msg.channel_id.say(&params.ctx.http, "Hello world!").await?;
+    send_message("Hello World!", &params).await?;
     Ok(())
 }

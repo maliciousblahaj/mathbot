@@ -1,28 +1,14 @@
-mod error;
 mod commands;
-mod bot;
-mod command;
-mod model;
-mod parser;
-mod logging;
-mod appearance;
 
-#[cfg(test)]
-mod tests;
-
-pub use self::error::{Error, Result};
 
 use std::env;
-use bot::BotBuilder;
-use command::{Command, CommandHelp};
+use mathbot::bot::BotBuilder;
+use mathbot::command::{self, Command, CommandHelp};
 use commands::info;
+use mathbot::vec_of_strings;
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
-#[macro_export]
-macro_rules! vec_of_strings {
-    ($($x:expr),*) => (vec![$($x.to_string()),*]);
-}
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()>{
@@ -30,7 +16,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
     dotenv().expect("Failed to load environment variables");
 
     //initiate bot with prefix
-    let bot = BotBuilder::new("dev ")
+    let bot = BotBuilder::new("dev ")?
         .register(info::commands())?
         .register_single(
             Command::new(

@@ -51,7 +51,7 @@ async fn help(params: CommandParams) -> Result<()> {
 pub fn help_command() -> Command {
     Command::new(
         help,
-        vec_of_strings!("help", "h"),
+        vec_of_strings!("help", "halp", "h"),
         CommandType::RootCommand { category: CommandCategory::Info },
     )
 }

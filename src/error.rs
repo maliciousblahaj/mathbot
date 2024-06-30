@@ -52,3 +52,31 @@ pub enum ClientError {
     InvalidSolveExpression,
     NoSolveExpression,
 }
+
+pub struct ClientErrInfo {
+    title: String,
+    description: String,
+}
+
+impl ClientErrInfo {
+    pub fn new(title: &str, description: &str) -> Self {
+        Self { title: title.to_string(), description: description.to_string() }
+    }
+
+    pub fn get_title(&self) -> &String {
+        &self.title
+    }
+
+    pub fn get_description(&self) -> &String {
+        &self.description
+    }
+}
+
+impl ClientError {
+    pub fn get_description(&self) -> ClientErrInfo {
+        match self {
+            Self::NoSolveExpression => ClientErrInfo::new("No expression specified", "You have to specify an expression to solve"),
+            Self::InvalidSolveExpression => ClientErrInfo::new("Invalid expression", "You need to specify a valid expression"),
+        }
+    }
+}

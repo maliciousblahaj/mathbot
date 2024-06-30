@@ -2,8 +2,8 @@ pub mod embed {
     use chrono::{Datelike, Local};
     use phf::phf_map;
     use rand::seq::SliceRandom;
-    use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
-    use crate::command::CommandParams;
+    use serenity::all::{Colour, Command, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Embed, Timestamp};
+    use crate::{command::CommandParams, error::ClientErrInfo};
 
     pub const _COLOR_TYPES: phf::Map<&'static str, i32>= phf_map! {
         "success" => 0x64FF64,
@@ -67,13 +67,31 @@ pub mod embed {
         }
     }
 
+    //params.msg.author.avatar_url().unwrap_or(params.msg.author.default_avatar_url())
+    pub struct EmbedCtx {
+        author_name: String,
+        author_avatar_url: String,
+    }
 
-    pub fn base_embed(params: &CommandParams, colortype: ColorType) -> CreateEmbed{
+    impl EmbedCtx {
+        pub fn new(author_name: String, author_avatar_url: String) -> Self {
+            Self {author_name, author_avatar_url}
+        }
+
+        pub fn from_params(params: &CommandParams) -> Self {
+            Self {
+                author_name: params.msg.author.name.to_string(),
+                author_avatar_url: params.msg.author.avatar_url().unwrap_or(params.msg.author.default_avatar_url())
+            }
+        }
+    }
+
+    pub fn base_embed(ctx: &EmbedCtx, colortype: ColorType) -> CreateEmbed{
         let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap().to_string();
         let footer = CreateEmbedFooter::new(randomfootermsg)
             .icon_url(MATHBOT_AVATAR_URL.to_string());
-        let author = CreateEmbedAuthor::new(format!("@{}", params.msg.author.name))
-            .icon_url(params.msg.author.avatar_url().unwrap_or(params.msg.author.default_avatar_url()));
+        let author = CreateEmbedAuthor::new(format!("@{}", &ctx.author_name))
+            .icon_url(&ctx.author_avatar_url);
         let timestamp = Local::now().with_year(1987).unwrap_or(Local::now()).timestamp();
 
         CreateEmbed::new()
@@ -81,5 +99,11 @@ pub mod embed {
             .author(author)
             .timestamp(Timestamp::from_unix_timestamp(timestamp).unwrap_or(Timestamp::now()))
             .color(Colour::new(colortype.color()))
+    }
+
+    pub fn error_embed(ctx: &EmbedCtx, clienterrinfo: ClientErrInfo) -> CreateEmbed {
+        base_embed(ctx, ColorType::Failure)
+            .title(clienterrinfo.get_title())
+            .description(clienterrinfo.get_description())
     }
 }

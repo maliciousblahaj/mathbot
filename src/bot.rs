@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use crate::get_current_timestamp_secs;
+use crate::{appearance::embed::{error_embed, EmbedCtx}, error::ClientErrInfo, get_current_timestamp_secs, send_embed, SendCtx};
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
 use tokio::sync::Mutex;
 
@@ -97,8 +97,17 @@ impl Bot {
 
         let params = CommandParams::new(parsed.args, parsed.args_str, ctx, msg, self.get_state(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
+        let embedctx = EmbedCtx::from_params(&params);
+        let sendctx = SendCtx::from_params(&params);
 
-        command.run(params).await
+        if let Err(e) = command.run(params).await {
+            let error_info = match e {
+                Error::Client(ce) => ce.get_description(),
+                _ => ClientErrInfo::new("Internal error", "Something went wrong"),
+            };
+            send_embed(error_embed(&embedctx, error_info), &sendctx).await?;
+        }
+        Ok(())
     }
 }
 

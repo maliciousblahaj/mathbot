@@ -12,7 +12,7 @@ mod tests;
 pub const BOT_VERSION: &'static str = "MathBot 3.0";
 
 use command::CommandParams;
-use serenity::all::{CreateEmbed, CreateMessage, Message};
+use serenity::all::{CacheHttp, ChannelId, CreateEmbed, CreateMessage, Message};
 
 pub use error::{Error, Result};
 
@@ -21,7 +21,7 @@ macro_rules! vec_of_strings {
     ($($x:expr),*) => (vec![$($x.to_string()),*]);
 }
 
-use std::{fmt::Display, time::{Duration, SystemTime, UNIX_EPOCH}};
+use std::{fmt::Display, sync::Arc, time::{Duration, SystemTime, UNIX_EPOCH}};
 
 pub fn get_current_timestamp() -> Result<Duration> {
     Ok(
@@ -39,18 +39,32 @@ pub fn get_current_timestamp_millis() -> Result<u128> {
     get_current_timestamp().map(|t| t.as_millis())
 }
 
-pub async fn send_embed(embed: CreateEmbed, params: &CommandParams) -> Result<Message> {
-    params.msg.channel_id.send_message(
-        &params.ctx.http, 
+pub struct SendCtx {
+    channel_id: ChannelId,
+    cache_http: Arc<serenity::http::Http>,
+}
+
+impl SendCtx {
+    pub fn from_params(params: &CommandParams) -> Self {
+        Self {
+            channel_id: params.msg.channel_id,
+            cache_http: params.ctx.http.clone(),
+        }
+    }
+}
+
+pub async fn send_embed(embed: CreateEmbed, ctx: &SendCtx) -> Result<Message> {
+    ctx.channel_id.send_message(
+        &ctx.cache_http, 
         CreateMessage::new().embed(embed)
     )
         .await
         .map_err(|_| Error::FailedToSendMessage)
 }
 
-pub async fn send_message<S: AsRef<str> + Display>(message: S, params: &CommandParams) -> Result<Message> {
-    params.msg.channel_id.say(
-        &params.ctx.http, 
+pub async fn send_message<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Result<Message> {
+    ctx.channel_id.say(
+        &ctx.cache_http, 
         message.to_string(),
     )
         .await

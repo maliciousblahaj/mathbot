@@ -1,5 +1,6 @@
 use serenity::all::{CreateMessage, EmbedField};
 
+use crate::appearance::embed::ColorType;
 use crate::command::{Command, CommandCategory, CommandIndex, CommandParams, CommandType};
 use crate::{appearance, Error, Result};
 
@@ -13,7 +14,7 @@ async fn help(params: CommandParams) -> Result<()> {
     //TODO: implement specific command help
     let prefix = &params.bot_prefix;
 
-    let mut embed = appearance::Embed::BaseEmbed(&params)
+    let mut embed = appearance::embed::BaseEmbed(&params, ColorType::Info)
         .title("Help menu")
         .description(format!("Here are all of the base commands. Write `{prefix}help {{command}}` to learn more about the commands"));
 

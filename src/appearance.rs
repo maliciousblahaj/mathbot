@@ -1,10 +1,8 @@
-pub mod Embed {
-    use core::time;
-    use std::collections::HashMap;
+pub mod embed {
     use chrono::{Datelike, Local};
     use phf::phf_map;
     use rand::seq::SliceRandom;
-    use serenity::all::{CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
+    use serenity::all::{Color, Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
     use crate::command::CommandParams;
 
     pub const COLOR_TYPES: phf::Map<&'static str, i32>= phf_map! {
@@ -41,9 +39,35 @@ pub mod Embed {
 
     pub const MATHBOT_AVATAR_URL: &'static str = "https://cdn.discordapp.com/avatars/992315441735270470/11acad15a810ef9d68cf14d7b07db43b.webp";
 
+    pub enum ColorType {
+        Success,
+        Failure,
+        Info,
+        Admin,
+        Settings,
+        Tool,
+        Fun,
+        UserInfo,
+        Currency,
+    }
+    impl ColorType {
+        pub fn color(&self) -> u32 {
+            match self {
+                Self::Success => 0x64FF64,
+                Self::Failure => 0xFF6464,
+                Self::Info => 0xFFFFFF,
+                Self::Settings => 0xCCCCCC,
+                Self::Tool => 0xC291FF,
+                Self::Fun => 0xF482FF,
+                Self::UserInfo => 0x02BFFF,
+                Self::Currency => 0x61FFFF,
+                Self::Admin => 0x000000,
+            }
+        }
+    }
 
 
-    pub fn BaseEmbed(params: &CommandParams) -> CreateEmbed{
+    pub fn BaseEmbed(params: &CommandParams, colortype: ColorType) -> CreateEmbed{
         let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap().to_string();
         let footer = CreateEmbedFooter::new(randomfootermsg)
             .icon_url(MATHBOT_AVATAR_URL.to_string());
@@ -55,5 +79,6 @@ pub mod Embed {
             .footer(footer)
             .author(author)
             .timestamp(Timestamp::from_unix_timestamp(timestamp).unwrap_or(Timestamp::now()))
+            .color(Colour::new(colortype.color()))
     }
 }

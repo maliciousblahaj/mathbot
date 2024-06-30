@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt, time::SystemTimeError};
 
 pub type Result<T> = core::result::Result<T, Error>;
 use derive_more::From;
@@ -22,6 +22,7 @@ pub enum Error {
     // -- Bot run errors
     FailedToSendMessage,
     NoCommandHandle,
+    FailedToGetPingTime,
 
 
     // -- Misc errors
@@ -31,6 +32,9 @@ pub enum Error {
     // -- External errors
     #[from]
     Serenity(SerenityError),
+
+    #[from]
+    StdTime(SystemTimeError),
 }
 
 // region:    --- Error boilerplate
@@ -42,7 +46,7 @@ impl fmt::Display for Error {
     }
 }
 // endregion: --- Error boilerplate
-
+#[allow(unused)]
 pub enum ClientError {
 
 }

@@ -1,13 +1,11 @@
 pub mod embed {
-    use std::fmt::Display;
-
     use chrono::{Datelike, Local};
     use phf::phf_map;
     use rand::seq::SliceRandom;
-    use serenity::all::{Color, Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
-    use crate::{command::{Command, CommandIndex, CommandParams}, Error, Result};
+    use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
+    use crate::command::CommandParams;
 
-    pub const COLOR_TYPES: phf::Map<&'static str, i32>= phf_map! {
+    pub const _COLOR_TYPES: phf::Map<&'static str, i32>= phf_map! {
         "success" => 0x64FF64,
         "failure" => 0xFF6464, 
         "info" => 0xFFFFFF,
@@ -41,6 +39,7 @@ pub mod embed {
 
     pub const MATHBOT_AVATAR_URL: &'static str = "https://cdn.discordapp.com/avatars/992315441735270470/11acad15a810ef9d68cf14d7b07db43b.webp";
 
+    #[allow(unused)]
     pub enum ColorType {
         Success,
         Failure,
@@ -69,7 +68,7 @@ pub mod embed {
     }
 
 
-    pub fn BaseEmbed(params: &CommandParams, colortype: ColorType) -> CreateEmbed{
+    pub fn base_embed(params: &CommandParams, colortype: ColorType) -> CreateEmbed{
         let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap().to_string();
         let footer = CreateEmbedFooter::new(randomfootermsg)
             .icon_url(MATHBOT_AVATAR_URL.to_string());
@@ -82,45 +81,5 @@ pub mod embed {
             .author(author)
             .timestamp(Timestamp::from_unix_timestamp(timestamp).unwrap_or(Timestamp::now()))
             .color(Colour::new(colortype.color()))
-    }
-
-    fn get_command_string<S: AsRef<str> + Display>(commandsequence: &Vec<S>) -> String {
-        let mut string = String::new();
-        for commandname in commandsequence {
-            string.push_str(format!("{commandname} ").as_str());
-        }
-        string.trim().to_owned()
-    }
-
-    pub fn HelpEmbed<S: AsRef<str> + Display>(params: &CommandParams, command: &Command, commandsequence: &Vec<S>) -> Result<CreateEmbed> {
-        let commandstring = get_command_string(commandsequence);
-        let commandhelp = command.get_help();
-        let prefix = &params.bot_prefix;
-
-        let mut embed = BaseEmbed(params, ColorType::Info)
-            .title(format!("{prefix}{commandstring} help"))
-            .description(
-                commandhelp.get_description()
-                    .replace("{{command}}", format!("{prefix}{commandstring}").as_str())
-                )
-            .field("Usage", format!("`{}{}{}`",prefix, commandstring, commandhelp.get_usage()),true)
-            .field("Type", format!("`{}`", command.get_cmd_type().to_string()), true);
-        
-        if command.has_subcommands() {
-            embed = embed.field(
-                "Subcommands",
-                match command.get_subcommands()
-                            .ok_or(Error::ImpossibleError)?
-                            .get_command_index()
-                            .ok_or(Error::CommandIndexDoesntExist)?
-                        {
-                            CommandIndex::Root(_) => {return Err(Error::CommandIndexWrongType)},
-                            CommandIndex::Sub(subcommands) => subcommands.join(", "),
-                        },
-                true,
-            );
-        }
-
-        Ok(embed)
     }
 }

@@ -1,6 +1,4 @@
-use std::fmt::Display;
 use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
 
 use crate::command::{CommandMap, CommandParams, CommandType};
@@ -52,8 +50,8 @@ impl GlobalState {
 #[async_trait]
 impl EventHandler for Bot {
     async fn message(&self, ctx: Context, msg: Message) {
-        if let Err(E) = self.handle_message(ctx, msg).await {
-            log(E);
+        if let Err(e) = self.handle_message(ctx, msg).await {
+            log(e);
         }
     }
 }

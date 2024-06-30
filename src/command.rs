@@ -31,6 +31,7 @@ impl CommandCategory {
 /// Root commands have a category assigned to them, but subcommands don't.
 /// Commands form a tree structure, where every command, root or sub, can have a subcommand
 #[derive(Debug, Clone)]
+#[allow(unused)]
 pub enum CommandType {
     RootCommand {category: CommandCategory},
     SubCommand,
@@ -110,6 +111,7 @@ impl CommandMap {
         self.commands.get(&name.to_string())
     }
 
+    #[allow(unused)]
     pub fn get_command_map(&self) -> &HashMap<String, String> {
         &self.command_map
     }
@@ -214,6 +216,7 @@ impl Command
         &self.help
     }
 
+    #[allow(unused)]
     ///Register a subcommand to a command
     pub fn register(
         mut self,
@@ -258,6 +261,7 @@ impl Clone for Command {
 /// Struct for parameters to a command
 /// 
 /// Includes args, context, and message
+#[allow(unused)]
 pub struct CommandParams{
     pub args: Vec<String>,
     pub ctx: Context, 

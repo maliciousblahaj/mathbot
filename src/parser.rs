@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{bot::Bot, command::{Command, CommandMap}, Result};
+use crate::{bot::Bot, command::{Command, CommandMap}};
 
 
 impl Bot {

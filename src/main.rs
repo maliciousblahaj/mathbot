@@ -12,10 +12,10 @@ mod tests;
 
 pub use self::error::{Error, Result};
 
-use std::{env, sync::Arc};
+use std::env;
 use bot::Bot;
 use command::{Command, CommandHelp};
-use commands::help_command;
+use commands::{help_command, info::ping_command};
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
@@ -32,6 +32,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
     //initiate bot with prefix
     let bot = Bot::new("dev ")
         .register(help_command())?
+        .register(ping_command())?
         .register(
             Command::new(
                 commands::misc::test,

@@ -1,11 +1,12 @@
-use std::borrow::Borrow;
 
-use serenity::all::{CreateMessage, EmbedField};
+use std::fmt::Display;
 
-use crate::appearance::embed::ColorType;
+use serenity::all::{CreateEmbed, CreateMessage};
+
+use crate::appearance::embed::{base_embed, ColorType};
 use crate::command::{Command, CommandCategory, CommandHelp, CommandIndex, CommandParams, CommandType};
 use crate::parser::parse_command;
-use crate::{appearance, Error, Result};
+use crate::{Error, Result};
 
 pub mod math;
 pub mod misc;
@@ -16,7 +17,7 @@ use crate::vec_of_strings;
 async fn help(params: CommandParams) -> Result<()> {
     if let Some((command, _, commandsequence)) = parse_command(&params.bot_commands, params.args.clone()){
 
-        let embed = appearance::embed::HelpEmbed(&params, command, &commandsequence)?;
+        let embed = help_embed(&params, command, &commandsequence)?;
 
         let message = CreateMessage::new()
             .embed(embed);
@@ -28,7 +29,7 @@ async fn help(params: CommandParams) -> Result<()> {
 
     let prefix = &params.bot_prefix;
 
-    let mut embed = appearance::embed::BaseEmbed(&params, ColorType::Info)
+    let mut embed = base_embed(&params, ColorType::Info)
         .title("Help menu")
         .description(format!("Here are all of the base commands. Write `{prefix}help {{command}}` to learn more about the commands"));
 
@@ -60,6 +61,38 @@ async fn help(params: CommandParams) -> Result<()> {
     params.msg.channel_id.send_message(&params.ctx.http, message).await?;
 
     Ok(())
+}
+
+pub fn help_embed<S: AsRef<str> + Display>(params: &CommandParams, command: &Command, commandsequence: &Vec<S>) -> Result<CreateEmbed> {
+    let commandstring = commandsequence.into_iter().map(|str| str.to_string()).collect::<Vec<String>>().join(" ");
+    let commandhelp = command.get_help();
+    let prefix = &params.bot_prefix;
+
+    let mut embed = base_embed(params, ColorType::Info)
+        .title(format!("{prefix}{commandstring} help"))
+        .description(
+            commandhelp.get_description()
+                .replace("{{command}}", format!("{prefix}{commandstring}").as_str())
+            )
+        .field("Usage", format!("`{}{}{}`",prefix, commandstring, commandhelp.get_usage()),true)
+        .field("Type", format!("`{}`", command.get_cmd_type().to_string()), true);
+    
+    if command.has_subcommands() {
+        embed = embed.field(
+            "Subcommands",
+            match command.get_subcommands()
+                        .ok_or(Error::ImpossibleError)?
+                        .get_command_index()
+                        .ok_or(Error::CommandIndexDoesntExist)?
+                    {
+                        CommandIndex::Root(_) => {return Err(Error::CommandIndexWrongType)},
+                        CommandIndex::Sub(subcommands) => subcommands.join(", "),
+                    },
+            true,
+        );
+    }
+
+    Ok(embed)
 }
 
 pub fn help_command() -> Command {

@@ -85,9 +85,11 @@ impl Bot {
     }
 
     async fn handle_message(&self, ctx: Context, msg: Message) -> Result<()>{
-        if !msg.author.bot{
-            log(&msg.content);
+        if msg.author.bot{
+            return Ok(());
         }
+
+        log(&msg.content);
 
         let parsed = match self.parse_message(&msg.content) {
             //if the message is not a command, return
@@ -95,7 +97,7 @@ impl Bot {
             Some(command) => command,
         };
 
-        let params = CommandParams::new(parsed.args, parsed.args_str, ctx, msg, self.get_state(), self.get_prefix().to_string(), self.get_commands().clone());
+        let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, ctx, msg, self.get_state(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
         let embedctx = EmbedCtx::from_params(&params);
         let sendctx = SendCtx::from_params(&params);
@@ -103,7 +105,9 @@ impl Bot {
         if let Err(e) = command.run(params).await {
             let error_info = match e {
                 Error::Client(ce) => ce.get_description(),
-                _ => ClientErrInfo::new("Internal error", "Something went wrong"),
+                e => {
+                    log(e);
+                    ClientErrInfo::new("Internal error", "Something went wrong")},
             };
             send_embed(error_embed(&embedctx, error_info), &sendctx).await?;
         }

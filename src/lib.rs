@@ -12,7 +12,7 @@ mod tests;
 pub const BOT_VERSION: &'static str = "MathBot 3.0";
 
 use command::CommandParams;
-use serenity::all::{CacheHttp, ChannelId, CreateEmbed, CreateMessage, Message};
+use serenity::all::{ChannelId, CreateEmbed, CreateMessage, Message};
 
 pub use error::{Error, Result};
 

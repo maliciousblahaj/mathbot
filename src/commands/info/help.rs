@@ -8,7 +8,7 @@ use mathbot::parser::parse_command;
 use mathbot::{send_embed, Error, Result, SendCtx};
 
 pub async fn help(params: CommandParams) -> Result<()> {
-    if let Some((command, _, _, commandsequence)) = parse_command(&params.bot_commands, params.args.clone()){
+    if let Some((command, _, _, commandsequence, _)) = parse_command(&params.bot_commands, params.args.clone()){
 
         let embed = help_embed(&params, command, &commandsequence)?;
 

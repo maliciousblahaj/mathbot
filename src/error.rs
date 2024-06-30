@@ -27,12 +27,14 @@ pub enum Error {
     PoisonedCommandMutex,
     FailedToGetSystemTimestamp,
     InvalidTimeDelta,
+    SayAliasNotFoundInMessageContent,
 
     // -- Client errors
     Client(ClientError),
 
 
     // -- Misc errors
+    TestError, //not for production. only use this in one place at a time so you can know when testing if something went wrong
     Test,
     ImpossibleError, //for when you have already checked if an option is none but you still need to cover the none arm
 }
@@ -49,6 +51,16 @@ impl fmt::Display for Error {
 #[allow(unused)]
 #[derive(Debug)]
 pub enum ClientError {
+    // -- Info
+    
+    // -- User
+    
+    // -- Currency
+    
+    // -- Fun
+    NoSayContent,
+
+    // -- Math
     InvalidSolveExpression,
     NoSolveExpression,
 }
@@ -75,6 +87,9 @@ impl ClientErrInfo {
 impl ClientError {
     pub fn get_description(&self) -> ClientErrInfo {
         match self {
+            // -- Fun
+            Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
+            // -- Math
             Self::NoSolveExpression => ClientErrInfo::new("No expression specified", "You have to specify an expression to solve"),
             Self::InvalidSolveExpression => ClientErrInfo::new("Invalid expression", "You need to specify a valid expression"),
         }

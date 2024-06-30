@@ -2,7 +2,7 @@ pub mod embed {
     use chrono::{Datelike, Local};
     use phf::phf_map;
     use rand::seq::SliceRandom;
-    use serenity::all::{Colour, Command, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Embed, Timestamp};
+    use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
     use crate::{command::CommandParams, error::ClientErrInfo};
 
     pub const _COLOR_TYPES: phf::Map<&'static str, i32>= phf_map! {

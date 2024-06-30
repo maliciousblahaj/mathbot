@@ -17,13 +17,16 @@ pub enum Error {
     CommandCategoryKeyDoesntExist,
     CommandCategoryVecDoesntExist,
     CommandIndexDoesntExist,
+    CommandIndexWrongType,
     
     // -- Bot run errors
     FailedToSendMessage,
     NoCommandHandle,
 
+
     // -- Misc errors
     Test,
+    ImpossibleError, //for when you have already checked if an option is none but you still need to cover the none arm
 
     // -- External errors
     #[from]

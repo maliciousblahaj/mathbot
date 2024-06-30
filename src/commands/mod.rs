@@ -1,7 +1,10 @@
+use std::borrow::Borrow;
+
 use serenity::all::{CreateMessage, EmbedField};
 
 use crate::appearance::embed::ColorType;
-use crate::command::{Command, CommandCategory, CommandIndex, CommandParams, CommandType};
+use crate::command::{Command, CommandCategory, CommandHelp, CommandIndex, CommandParams, CommandType};
+use crate::parser::parse_command;
 use crate::{appearance, Error, Result};
 
 pub mod math;
@@ -11,7 +14,18 @@ pub mod info;
 use crate::vec_of_strings;
 
 async fn help(params: CommandParams) -> Result<()> {
-    //TODO: implement specific command help
+    if let Some((command, _, commandsequence)) = parse_command(&params.bot_commands, params.args.clone()){
+
+        let embed = appearance::embed::HelpEmbed(&params, command, &commandsequence)?;
+
+        let message = CreateMessage::new()
+            .embed(embed);
+
+        params.msg.channel_id.send_message(&params.ctx.http, message).await?;
+
+        return Ok(());
+    }
+
     let prefix = &params.bot_prefix;
 
     let mut embed = appearance::embed::BaseEmbed(&params, ColorType::Info)
@@ -33,10 +47,10 @@ async fn help(params: CommandParams) -> Result<()> {
         for cmdname in cmdvec {
             s.push_str(&format!("`{}{}`, ", prefix, cmdname))
         }
-        //remove the last ", "
-        if s.len() >= 2 {
-            s = s[..s.len() - 2].to_string();
-        }
+        s = match s.strip_suffix(", ") {
+            Some(cleaned) => cleaned.to_string(),
+            None => s,
+        };
         embed = embed.field(name, s, false);
     }
     
@@ -53,5 +67,6 @@ pub fn help_command() -> Command {
         help,
         vec_of_strings!("help", "halp", "h"),
         CommandType::RootCommand { category: CommandCategory::Info },
+        CommandHelp::new("Look up how a specific command is used. `/{}` indicates it's an optional input and `{}` indicates it's a required input. If a command has subcommands you can use `{{command}} {command} {subcommand}` to view its help page", " /{command}"),
     )
 }

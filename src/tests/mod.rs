@@ -6,7 +6,7 @@ use crate::bot::Bot;
 use crate::{command::{self, CommandParams}, Result};
 
 mod testcommands {
-    use command::{Command, CommandCategory};
+    use command::{Command, CommandCategory, CommandHelp};
 
     use crate::vec_of_strings;
 
@@ -22,23 +22,27 @@ mod testcommands {
             testcommand, 
             vec_of_strings!("test", "test2", "t"),
             CommandType::RootCommand { category: CommandCategory::Test },
+            CommandHelp::new("",""),
         );
         let uwu = Command::new(
             uwucommand,
             vec_of_strings!("owo", "uwu", ":3", ">w<"),
             CommandType::SubCommand,
+            CommandHelp::new("",""),
         );
 
         let hi = Command::new(
             hicommand, 
             vec_of_strings!("hi", "hello", "haiii", "haii", "hai", "haiiii", "h"),
             CommandType::RootCommand { category: CommandCategory::Test },
+            CommandHelp::new("",""),
         ).register(uwu).unwrap();
 
         let bye = Command::new(
             byecommand,
             vec_of_strings!("bye", "byy"),
-            CommandType::RootCommand { category: CommandCategory::Info }
+            CommandType::RootCommand { category: CommandCategory::Info },
+            CommandHelp::new("",""),
         );
 
         vec![test, hi, bye]

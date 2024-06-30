@@ -14,7 +14,7 @@ pub use self::error::{Error, Result};
 
 use std::{env, sync::Arc};
 use bot::Bot;
-use command::Command;
+use command::{Command, CommandHelp};
 use commands::help_command;
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
@@ -37,6 +37,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
                 commands::misc::test,
                 vec_of_strings!["test", "test2", "t"], 
                 command::CommandType::RootCommand { category: (command::CommandCategory::Test) },
+                CommandHelp::new("responds with hello world.", ""),
             )
         )?;
 

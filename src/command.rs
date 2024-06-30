@@ -36,6 +36,15 @@ pub enum CommandType {
     SubCommand,
 }
 
+impl Display for CommandType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", match self {
+            Self::SubCommand => "Subcommand",
+            Self::RootCommand { category } => category.as_ref(),
+        })
+    }
+}
+
 ///If a command index is root, it groups command names by their categories
 /// else just by name
 #[derive(Debug, Clone)]
@@ -152,6 +161,7 @@ pub struct Command
     handle: Option<CommandHandler>,
     aliases: Vec<String>,
     cmd_type: CommandType,
+    help: CommandHelp,
     subcommands: Option<CommandMap>,
 }
 
@@ -161,6 +171,7 @@ impl Command
         handle: fn(CommandParams) -> T, 
         aliases: Vec<String>, 
         cmd_type: CommandType,
+        help: CommandHelp,
     ) -> Self
     where 
         T: Future<Output = Result<()>> + 'static + Send,
@@ -170,6 +181,7 @@ impl Command
             handle: Some(handle),
             aliases,
             cmd_type,
+            help,
             subcommands: None,
         }
     }
@@ -192,6 +204,14 @@ impl Command
 
     pub fn get_subcommands(&self) -> Option<&CommandMap> {
         self.subcommands.as_ref()
+    }
+
+    pub fn has_subcommands(&self) -> bool {
+        !self.subcommands.is_none()
+    }
+
+    pub fn get_help(&self) -> &CommandHelp {
+        &self.help
     }
 
     ///Register a subcommand to a command
@@ -229,6 +249,7 @@ impl Clone for Command {
             handle: None,
             aliases: self.aliases.clone(),
             cmd_type: self.cmd_type.clone(),
+            help: self.help.clone(),
             subcommands: self.subcommands.clone(),
         }
     }
@@ -256,5 +277,28 @@ impl CommandParams {
             bot_prefix,
             bot_commands,
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct CommandHelp {
+    description: String,
+    usage: String,
+}
+
+impl CommandHelp {
+    pub fn new<S: AsRef<str> + Display, T: AsRef<str> + Display> (description: S, usage: T) -> Self {
+        Self {
+            description: description.to_string(),
+            usage: usage.to_string(),
+        }
+    }
+
+    pub fn get_description(&self) -> &String {
+        &self.description
+    }
+
+    pub fn get_usage(&self) -> &String {
+        &self.usage
     }
 }

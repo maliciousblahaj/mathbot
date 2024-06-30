@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{bot::Bot, command::Command, Result};
+use crate::{bot::Bot, command::{Command, CommandMap}, Result};
 
 
 impl Bot {
@@ -11,20 +11,9 @@ impl Bot {
             return None;
         }
 
-        let mut parts = message[prefix.len()..].split_whitespace().map(|arg| arg.to_string()).peekable();
+        let parts: Vec<&str> = message.get(prefix.len()..)?.split_whitespace().collect();
 
-        let mut command = self.get_commands().get_command_by_alias(parts.next()?)?;
-        loop {
-
-            command = match || -> Option<&Box<Command>> {Some(command.get_subcommands()?.get_command_by_alias(parts.peek()?)?)}() {
-                //The closure will return None and exit the loop if the next part is not a command 
-                None => {break;},
-                Some(cmd) => cmd,
-            };
-            parts.next();
-        }
-
-        let args: Vec<String> = parts.collect();
+        let (command, args, _) = parse_command( self.get_commands(), parts)?;
 
         Some(ParsedCommand{
             args,
@@ -33,6 +22,24 @@ impl Bot {
     }
 }
 
+// Takes a CommandMap of the root and the parts of the command, and splits the command and its args, and the full command sequence
+pub fn parse_command<'a, S: AsRef<str> + Display>(cmd_map: &'a CommandMap, parts: Vec<S>) -> Option<(&'a Box<Command>, Vec<String>, Vec<&String>)> {
+    let mut parts = parts.iter().map(|arg| arg.to_string()).peekable();
+    let mut command = cmd_map.get_command_by_alias(parts.next()?)?;
+    let mut commandsequence = Vec::from([command.get_name()]);
+    loop {
+
+        command = match || -> Option<&Box<Command>> {Some(command.get_subcommands()?.get_command_by_alias(parts.peek()?)?)}() {
+            //The closure will return None and exit the loop if the next part is not a command 
+            None => {break;},
+            Some(cmd) => cmd,
+        };
+        commandsequence.push(command.get_name());
+        parts.next();
+    }
+
+    Some((command, parts.collect(), commandsequence))
+}
 
 
 #[derive(Debug)]

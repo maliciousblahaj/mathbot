@@ -25,7 +25,7 @@ impl Bot {
     }
 }
 
-// Takes a CommandMap of the root and the parts of the command, and splits the command and its args, and the full command sequence
+// Takes a CommandMap of the root and the parts of the command, and splits the command and its args, and also returns some other nice-to-haves
 pub fn parse_command<'a, S: AsRef<str> + Display>(cmd_map: &'a CommandMap, parts: Vec<S>) -> Option<(&'a Box<Command>, Vec<String>, String, Vec<String>, Vec<String>)> {
     let mut parts = parts.iter().map(|arg| arg.to_string()).peekable();
     let alias = parts.next()?;

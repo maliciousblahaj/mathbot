@@ -20,11 +20,16 @@ pub enum Error {
     
     // -- Bot run errors
     FailedToSendMessage,
+    FailedToEditMessage,
     NoCommandHandle,
     FailedToGetPingTime,
     PoisonedStateMutex,
     PoisonedCommandMutex,
     FailedToGetSystemTimestamp,
+    InvalidTimeDelta,
+
+    // -- Client errors
+    Client(ClientError),
 
 
     // -- Misc errors
@@ -42,6 +47,8 @@ impl fmt::Display for Error {
 }
 // endregion: --- Error boilerplate
 #[allow(unused)]
+#[derive(Debug)]
 pub enum ClientError {
-
+    InvalidSolveExpression,
+    NoSolveExpression,
 }

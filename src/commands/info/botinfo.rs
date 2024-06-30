@@ -1,3 +1,4 @@
+use chrono::TimeDelta;
 use mathbot::{appearance::embed::{base_embed, ColorType}, command::CommandParams, get_current_timestamp_secs};
 use mathbot::{send_embed, Result, BOT_VERSION};
 
@@ -8,13 +9,32 @@ pub async fn botinfo(params: CommandParams) -> Result<()> {
 
     let prefix = &params.bot_prefix;
 
-    let time = get_current_timestamp_secs()? - starttime;
+    let timestr = get_timedelta_string(TimeDelta::seconds((get_current_timestamp_secs()? - starttime) as i64));
 
     let embed = base_embed(&params, ColorType::Settings)
+        .title("Bot Information")
         .field("Bot Version", format!("`{BOT_VERSION}`"), false)
-        .field("Bot Uptime", format!("`{time}s`"), false)
+        .field("Bot Uptime", timestr, false)
         .field("Bot Prefix", format!("`{prefix}`"), false);
 
     send_embed(embed, &params).await?;
     Ok(())
+}
+
+fn get_timedelta_string(time: TimeDelta) -> String {
+    let days = time.num_days();
+    let hours = time.num_hours();
+    let minutes = time.num_minutes();
+    let seconds = time.num_seconds();
+
+    format!("`{}{}:{:02}:{:02}`",
+        match days {
+            0 => "".to_string(),
+            1 => format!("{days} day, "),
+            days => format!("{days} days, "),
+        },
+        hours,
+        minutes,
+        seconds,
+    )
 }

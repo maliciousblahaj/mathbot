@@ -9,10 +9,10 @@ pub mod appearance;
 #[cfg(test)]
 mod tests;
 
-pub const BOT_VERSION: &'static str = "3.0";
+pub const BOT_VERSION: &'static str = "MathBot 3.0";
 
 use command::CommandParams;
-use serenity::all::{CreateEmbed, CreateMessage};
+use serenity::all::{CreateEmbed, CreateMessage, Message};
 
 pub use error::{Error, Result};
 
@@ -39,22 +39,20 @@ pub fn get_current_timestamp_millis() -> Result<u128> {
     get_current_timestamp().map(|t| t.as_millis())
 }
 
-pub async fn send_embed(embed: CreateEmbed, params: &CommandParams) -> Result<()> {
+pub async fn send_embed(embed: CreateEmbed, params: &CommandParams) -> Result<Message> {
     params.msg.channel_id.send_message(
         &params.ctx.http, 
         CreateMessage::new().embed(embed)
     )
         .await
-        .map_err(|_| Error::FailedToSendMessage)?;
-    Ok(())
+        .map_err(|_| Error::FailedToSendMessage)
 }
 
-pub async fn send_message<S: AsRef<str> + Display>(message: S, params: &CommandParams) -> Result<()> {
+pub async fn send_message<S: AsRef<str> + Display>(message: S, params: &CommandParams) -> Result<Message> {
     params.msg.channel_id.say(
         &params.ctx.http, 
         message.to_string(),
     )
         .await
-        .map_err(|_| Error::FailedToSendMessage)?;
-    Ok(())
+        .map_err(|_| Error::FailedToSendMessage)
 }

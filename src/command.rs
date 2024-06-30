@@ -287,6 +287,7 @@ impl Clone for Command {
 #[allow(unused)]
 pub struct CommandParams{
     pub args: Vec<String>,
+    pub args_str: String,
     pub ctx: Context, 
     pub msg: Message,
     pub state: Arc<Mutex<GlobalState>>,
@@ -295,9 +296,10 @@ pub struct CommandParams{
 }
 
 impl CommandParams {
-    pub fn new(args: Vec<String>, ctx: Context, msg: Message, state: Arc<Mutex<GlobalState>>, bot_prefix: String, bot_commands: CommandMap) -> Self {
+    pub fn new(args: Vec<String>, args_str: String, ctx: Context, msg: Message, state: Arc<Mutex<GlobalState>>, bot_prefix: String, bot_commands: CommandMap) -> Self {
         Self {
             args,
+            args_str,
             ctx,
             msg,
             state,

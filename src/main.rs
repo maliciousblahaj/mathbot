@@ -4,7 +4,7 @@ mod commands;
 use std::env;
 use mathbot::bot::BotBuilder;
 use mathbot::command::{self, Command, CommandHelp};
-use commands::info;
+use commands::{info, math};
 use mathbot::vec_of_strings;
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
@@ -18,6 +18,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
     //initiate bot with prefix
     let bot = BotBuilder::new("dev ")?
         .register(info::commands())?
+        .register(math::commands())?
         .register_single(
             Command::new(
                 commands::test::test,

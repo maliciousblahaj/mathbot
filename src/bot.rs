@@ -95,7 +95,7 @@ impl Bot {
             Some(command) => command,
         };
 
-        let params = CommandParams::new(parsed.args, ctx, msg, self.get_state(), self.get_prefix().to_string(), self.get_commands().clone());
+        let params = CommandParams::new(parsed.args, parsed.args_str, ctx, msg, self.get_state(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
 
         command.run(params).await

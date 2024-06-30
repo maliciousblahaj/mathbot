@@ -8,7 +8,7 @@ use mathbot::parser::parse_command;
 use mathbot::{send_embed, Error, Result};
 
 pub async fn help(params: CommandParams) -> Result<()> {
-    if let Some((command, _, commandsequence)) = parse_command(&params.bot_commands, params.args.clone()){
+    if let Some((command, _, _, commandsequence)) = parse_command(&params.bot_commands, params.args.clone()){
 
         let embed = help_embed(&params, command, &commandsequence)?;
 
@@ -21,7 +21,7 @@ pub async fn help(params: CommandParams) -> Result<()> {
 
     let mut embed = base_embed(&params, ColorType::Info)
         .title("Help menu")
-        .description(format!("Here are all of the base commands. Write `{prefix}help {{command}}` to learn more about the commands"));
+        .description(format!("Here are all of the base commands. To run the commands specify `{prefix}` before them. Write `{prefix}help {{command}}` to learn more about the commands"));
 
     for (name, cmdvec) in 
         match params.bot_commands.get_command_index().ok_or(Error::CommandIndexDoesntExist)? {
@@ -36,7 +36,7 @@ pub async fn help(params: CommandParams) -> Result<()> {
         }
         let mut s = String::new();
         for cmdname in cmdvec {
-            s.push_str(&format!("`{}{}`, ", prefix, cmdname))
+            s.push_str(&format!("`{}`, ", cmdname))
         }
         s = match s.strip_suffix(", ") {
             Some(cleaned) => cleaned.to_string(),

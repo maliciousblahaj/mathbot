@@ -4,7 +4,6 @@ pub mod ping;
 pub mod help;
 pub mod botinfo;
 
-//         "botinfo": Command("botinfo", "Look up info about the current instance running the bot", ""),
 pub fn commands() -> Vec<Command> {
     let rootinfo = CommandType::RootCommand { category: CommandCategory::Info };
     Vec::from([

@@ -1,6 +1,7 @@
 use std::sync::Arc;
-use crate::{appearance::embed::{error_embed, EmbedCtx}, error::ClientErrInfo, get_current_timestamp_secs, send_embed, SendCtx};
+use crate::{appearance::embed::{error_embed, EmbedCtx}, error::ClientErrInfo, get_current_timestamp_secs, model::ModelController, send_embed, SendCtx};
 use serenity::{all::{Context, EventHandler, Message}, async_trait};
+use sqlx::SqlitePool;
 use tokio::sync::Mutex;
 
 use crate::command::{CommandMap, CommandParams, CommandType};
@@ -10,18 +11,16 @@ use crate::{Result, Error, command::Command};
 pub struct BotBuilder {
     prefix: String,
     commands: CommandMap,
-    state: Arc<Mutex<GlobalState>>,
+    state: GlobalState,
 }
 
 impl BotBuilder {
-    pub fn new(prefix: &str) -> Result<Self> {
+    pub fn new(prefix: &str, database: SqlitePool) -> Result<Self> {
         Ok(
         Self {
             prefix: prefix.to_string(),
             commands: CommandMap::new(),
-            state: Arc::new(Mutex::new(
-                GlobalState::new()?
-            )),
+            state: GlobalState::new(database)?,
         })
     }
 
@@ -64,18 +63,17 @@ impl BotBuilder {
 
 
 
-#[derive(Debug)]
 pub struct Bot {
     prefix: String,
     commands: CommandMap,
-    state: Arc<Mutex<GlobalState>>,
+    state: GlobalState,
 }
 
 impl Bot {
     fn new(
         prefix: String,
         commands: CommandMap,
-        state: Arc<Mutex<GlobalState>>,
+        state: GlobalState,
     ) -> Self {
         Self {
             prefix,
@@ -97,7 +95,7 @@ impl Bot {
             Some(command) => command,
         };
 
-        let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, ctx, msg, self.get_state(), self.get_prefix().to_string(), self.get_commands().clone());
+        let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
         let embedctx = EmbedCtx::from_params(&params);
         let sendctx = SendCtx::from_params(&params);
@@ -116,18 +114,21 @@ impl Bot {
 }
 
 
-#[derive(Debug)]
+#[allow(unused)]
+#[derive(Clone)]
 pub struct GlobalState {
     start_time: u64,
-    //TODO: Add modelcontroller to this
+    mc: Arc<Mutex<ModelController>>,
 }
 
 impl GlobalState {
-    pub fn new() -> Result<Self> {
+    pub fn new(database: SqlitePool) -> Result<Self> {
         Ok(
-        Self {
-            start_time: get_current_timestamp_secs()?
-        })
+            Self {
+                start_time: get_current_timestamp_secs()?,
+                mc: Arc::new(Mutex::new(ModelController::new(database))),
+            }
+        )
     }
 
     pub fn get_start_time(&self) -> &u64 {
@@ -156,8 +157,8 @@ impl Bot {
         &self.commands
     }
 
-    pub fn get_state(&self) -> Arc<Mutex<GlobalState>> {
-        (&self.state).clone()
+    pub fn get_state(&self) -> &GlobalState {
+        &self.state
     }
 
 }

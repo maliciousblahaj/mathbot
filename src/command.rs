@@ -291,13 +291,13 @@ pub struct CommandParams{
     pub aliassequence: Vec<String>,
     pub ctx: Context, 
     pub msg: Message,
-    pub state: Arc<Mutex<GlobalState>>,
+    pub state: GlobalState,
     pub bot_prefix: String,
     pub bot_commands: CommandMap,
 }
 
 impl CommandParams {
-    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, ctx: Context, msg: Message, state: Arc<Mutex<GlobalState>>, bot_prefix: String, bot_commands: CommandMap) -> Self {
+    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, ctx: Context, msg: Message, state: GlobalState, bot_prefix: String, bot_commands: CommandMap) -> Self {
         Self {
             args,
             args_str,

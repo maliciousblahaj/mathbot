@@ -1,50 +1,46 @@
 CREATE TABLE "Accounts" (
-	"id"	        INTEGER, 
+	"id"	        INTEGER PRIMARY KEY, 
 	"user_id"	    INTEGER NOT NULL UNIQUE, --discord userid
 	"created"	    INTEGER NOT NULL, --unix timestamp
 	"balance"	    REAL NOT NULL DEFAULT 100, 
-	"smpssolved"	INTEGER NOT NULL DEFAULT 0, --simple math problems solved
-	"isbanned"	    INTEGER NOT NULL DEFAULT 0, --bool
-	"mineslots"	    INTEGER NOT NULL DEFAULT 0, --number of mine slots
-	"previousclaim"	INTEGER NOT NULL DEFAULT 0, --unix timestamp
-	"awaitingclaim"	INTEGER NOT NULL DEFAULT 0, --number of mathcoins that have not been claimed
-	"username"		TEXT NOT NULL UNIQUE,
-	"userbio"		TEXT,
-	"pronouns"		TEXT,
-	"avatarurl"		TEXT NOT NULL,
-	"nextusernameupdate"	INTEGER NOT NULL DEFAULT 0, --unix timestamp
-	"isadmin"		INTEGER NOT NULL DEFAULT 0, --bool
-	PRIMARY KEY("id")
-)
+	"smps_solved"	INTEGER NOT NULL DEFAULT 0, --simple math problems solved
+	"is_banned"	    INTEGER NOT NULL DEFAULT 0, --bool
+	"mine_slots"	INTEGER NOT NULL DEFAULT 0, --number of mine slots
+	"previous_claim"	INTEGER NOT NULL DEFAULT 0, --unix timestamp
+	"awaiting_claim"	INTEGER NOT NULL DEFAULT 0, --number of mathcoins that have not been claimed
+	"user_name"		TEXT NOT NULL UNIQUE,
+	"user_bio"		TEXT, --optional
+	"pronouns"		TEXT, --optional
+	"avatar_url"	TEXT NOT NULL,
+	"next_username_update"	INTEGER NOT NULL DEFAULT 0, --unix timestamp
+	"is_admin"		INTEGER NOT NULL DEFAULT 0 --bool
+);
 
 CREATE TABLE "Inventory" (
-	"db_id"			INTEGER NOT NULL,
+	"account_id"	INTEGER NOT NULL,
 	"item_id"		INTEGER NOT NULL,
 	"count"			INTEGER NOT NULL DEFAULT 0,
-	FOREIGN KEY("item_id") REFERENCES "Items"("id"),
-	FOREIGN KEY("db_id") REFERENCES "Accounts"("id")
-)
+	FOREIGN KEY("account_id") REFERENCES "Accounts"("id"),
+	FOREIGN KEY("item_id") REFERENCES "Items"("id")
+);
 
 CREATE TABLE "Items" (
-        "id"    	INTEGER,
-        "name_id"    TEXT NOT NULL,
-        "emoji_id"   TEXT,
-        "imageurl"  TEXT,
-        "name"  	TEXT NOT NULL,
-        "itemtype"  TEXT,
-        "forsale"   INTEGER,
-        "price" 	INTEGER,
-        "description"   TEXT,
-        "multiplier"    REAL,
-        "mps"   	REAL,
-        PRIMARY KEY("id")
-)
+        "id"    		INTEGER PRIMARY KEY,
+        "name_id"   	TEXT NOT NULL UNIQUE,
+        "emoji_id"  	TEXT, --optional
+        "image_url" 	TEXT, --optional
+        "display_name" 	TEXT NOT NULL,
+        "item_type" 	TEXT NOT NULL,
+        "price" 		INTEGER, --if it's null then it's not for sale
+        "description"   TEXT, --optional
+        "multiplier"    REAL, --optional
+        "mps"   		REAL --optional
+);
 
 CREATE TABLE "Slots" (
-	"id"			INTEGER,
-	"db_id"			INTEGER NOT NULL,
-	"item_id"		INTEGER NOT NULL DEFAULT 0,
-	PRIMARY KEY("id"),
-	FOREIGN KEY("db_id") REFERENCES "Accounts"("id"),
+	"id"			INTEGER PRIMARY KEY,
+	"account_id"	INTEGER NOT NULL,
+	"item_id"		INTEGER NOT NULL,
+	FOREIGN KEY("account_id") REFERENCES "Accounts"("id"),
 	FOREIGN KEY("item_id") REFERENCES "Items"("id")
-)
+);

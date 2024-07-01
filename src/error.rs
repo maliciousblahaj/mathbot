@@ -1,10 +1,8 @@
 use std::{error, fmt};
 
 pub type Result<T> = core::result::Result<T, Error>;
-use derive_more::From;
 
-
-#[derive(Debug, From, strum_macros::AsRefStr)]
+#[derive(Debug, strum_macros::AsRefStr)]
 pub enum Error {
     // -- Bot setup errors
     RegisterCommandAlreadyExists,
@@ -19,16 +17,18 @@ pub enum Error {
     CommandIndexWrongType,
     
     // -- Bot run errors
-    FailedToSendMessage,
-    FailedToEditMessage,
+    FailedToSendMessage(serenity::Error),
+    FailedToEditMessage(serenity::Error),
     NoCommandHandle,
     FailedToGetPingTime,
     PoisonedStateMutex,
     PoisonedCommandMutex,
-    FailedToGetSystemTimestamp,
+    FailedToGetSystemTimestamp(std::time::SystemTimeError),
     InvalidTimeDelta,
     SayAliasNotFoundInMessageContent,
-    FailedToGetSolveContextMap,
+    FailedToGetSolveContextMap(evalexpr::EvalexprError),
+    FailedToFetchItem(sqlx::Error),
+    FailedToParseItemType(strum::ParseError),
 
     // -- Client errors
     Client(ClientError),

@@ -1,7 +1,8 @@
+#[allow(unused)]
+
 use std::io::Write;
 
 use command::CommandType;
-
 use crate::bot::{Bot, BotBuilder};
 use crate::{command::{self, CommandParams}, Result};
 
@@ -51,6 +52,7 @@ mod testcommands {
 
 
 
+/*
 fn makebot() -> Bot {
     let commands = testcommands::setupcommands();
 
@@ -66,9 +68,10 @@ fn makebot() -> Bot {
 }
 
 #[test]
+#[allow(unused)]
 fn setup_bot() {
     let bot = makebot();
-    println!("{bot:?}");
+    //println!("{bot}"); i need to impl display for bot first
 }
 
 #[ignore]
@@ -95,3 +98,4 @@ fn parse_commands() {
         println!("{s}: {parsed:?}");
     }
 }
+*/

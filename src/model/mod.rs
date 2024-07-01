@@ -1,19 +1,17 @@
-use crate::bot::Bot;
-
 pub mod item;
 pub mod account;
 
 #[allow(unused)]
 pub struct ModelController {
-    //TODO: add database to this
+    database: sqlx::SqlitePool,
 }
 
 
 impl ModelController {
     #[allow(unused)]
-    pub fn new(_bot: Bot) -> Self {
+    pub fn new(database: sqlx::SqlitePool) -> Self {
         Self {
-            
+            database,
         }
     }
 }

@@ -18,7 +18,7 @@ pub async fn solve(params: CommandParams) -> Result<()> {
         "sin" => Function::new(|n| Ok(Value::Float(n.as_float()?.sin()))),
         "cos" => Function::new(|n| Ok(Value::Float(n.as_float()?.cos()))),
         "tan" => Function::new(|n| Ok(Value::Float(n.as_float()?.tan()))),
-    }.map_err(|_| Error::FailedToGetSolveContextMap)?;
+    }.map_err(|e| Error::FailedToGetSolveContextMap(e))?;
 
     let expr = &params.args_str;
     let result = eval_with_context(&expr, &context)

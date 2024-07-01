@@ -17,6 +17,6 @@ pub async fn ping(params: CommandParams) -> Result<()> {
         EditMessage::new()
             .content(format!("Pong! Bot latency: {deltatime_ms}ms"))
     ).await
-    .map_err(|_| Error::FailedToEditMessage)?;
+    .map_err(|e| Error::FailedToEditMessage(e))?;
     Ok(())
 }

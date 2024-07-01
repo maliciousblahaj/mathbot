@@ -3,9 +3,7 @@ use mathbot::{appearance::embed::{base_embed, ColorType, EmbedCtx}, command::Com
 use mathbot::{send_embed, Result, BOT_VERSION};
 
 pub async fn botinfo(params: CommandParams) -> Result<()> {
-    let stateguard = params.state.lock().await;
-    let starttime = stateguard.get_start_time().clone();
-    drop(stateguard);
+    let starttime = params.state.get_start_time().clone();
 
     let prefix = &params.bot_prefix;
 

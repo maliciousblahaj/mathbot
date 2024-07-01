@@ -7,6 +7,7 @@ pub mod logging;
 pub mod appearance;
 
 #[cfg(test)]
+#[allow(unused)]
 mod tests;
 
 pub const BOT_VERSION: &'static str = "MathBot 3.0";
@@ -27,7 +28,7 @@ pub fn get_current_timestamp() -> Result<Duration> {
     Ok(
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .map_err(|_| Error::FailedToGetSystemTimestamp)?
+            .map_err(|e| Error::FailedToGetSystemTimestamp(e))?
     )
 }
 
@@ -59,7 +60,7 @@ pub async fn send_embed(embed: CreateEmbed, ctx: &SendCtx) -> Result<Message> {
         CreateMessage::new().embed(embed)
     )
         .await
-        .map_err(|_| Error::FailedToSendMessage)
+        .map_err(|e| Error::FailedToSendMessage(e))
 }
 
 pub async fn send_message<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Result<Message> {
@@ -68,5 +69,5 @@ pub async fn send_message<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) ->
         message.to_string(),
     )
         .await
-        .map_err(|_| Error::FailedToSendMessage)
+        .map_err(|e| Error::FailedToSendMessage(e))
 }

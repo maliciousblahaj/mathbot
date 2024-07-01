@@ -39,7 +39,6 @@ pub mod embed {
 
     pub const MATHBOT_AVATAR_URL: &'static str = "https://cdn.discordapp.com/avatars/992315441735270470/11acad15a810ef9d68cf14d7b07db43b.webp";
 
-    #[allow(unused)]
     pub enum ColorType {
         Success,
         Failure,

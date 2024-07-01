@@ -1,5 +1,3 @@
-#[allow(unused)]
-
 use std::io::Write;
 
 use command::CommandType;
@@ -68,7 +66,6 @@ fn makebot() -> Bot {
 }
 
 #[test]
-#[allow(unused)]
 fn setup_bot() {
     let bot = makebot();
     //println!("{bot}"); i need to impl display for bot first

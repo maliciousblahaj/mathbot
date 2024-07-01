@@ -5,20 +5,17 @@ use tokio::sync::Mutex;
 
 use super::ModelController;
 
-#[allow(unused)]
 pub struct ItemController {
     mc: Arc<Mutex<ModelController>>,
     id: i64,
 }
 
 impl ItemController {
-    pub fn new(mc: &Arc<Mutex<ModelController>>, id: i64) -> Result<Self> {
-        Ok(
-            Self {
-                mc: mc.clone(),
-                id,
-            }
-        )
+    pub fn new(mc: &Arc<Mutex<ModelController>>, id: i64) -> Self {
+        Self {
+            mc: mc.clone(),
+            id,
+        }
     }
 
     pub fn get_id(&self) -> &i64 {
@@ -75,6 +72,11 @@ pub struct Item {
 }
 
 impl Item {
+    /*
+    pub fn new(id: i64, name_id: String, emoji_id: Option<String>, image_url: Option<String>, display_name: String, item_type: ItemType, price: Option<i64>, description: Option<String>, multiplier: Option<f64>, mps: Option<f64>) -> Self {
+        Self{id, name_id, emoji_id, image_url, display_name, item_type, price, description, multiplier, mps}
+    }*/
+
     pub fn is_for_sale(&self) -> bool {
         self.price.is_some()
     }

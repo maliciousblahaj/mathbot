@@ -32,7 +32,6 @@ impl CommandCategory {
 /// Root commands have a category assigned to them, but subcommands don't.
 /// Commands form a tree structure, where every command, root or sub, can have a subcommand
 #[derive(Debug, Clone)]
-#[allow(unused)]
 pub enum CommandType {
     RootCommand {category: CommandCategory},
     SubCommand,
@@ -227,7 +226,6 @@ impl Command
     /// Register multiple subcommands
     /// 
     /// For single commands, use register_single
-    #[allow(unused)]
     pub fn register(
         mut self,
         commands: Vec<Command>,
@@ -240,7 +238,6 @@ impl Command
     }
 
     /// Register a single subcommand
-    #[allow(unused)]
     pub fn register_single(
         mut self,
         command: Command,
@@ -284,7 +281,6 @@ impl Clone for Command {
 /// Struct for parameters to a command
 /// 
 /// Includes args, context, and message
-#[allow(unused)]
 pub struct CommandParams{
     pub args: Vec<String>,
     pub args_str: String,

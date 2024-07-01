@@ -27,8 +27,12 @@ pub enum Error {
     InvalidTimeDelta,
     SayAliasNotFoundInMessageContent,
     FailedToGetSolveContextMap(evalexpr::EvalexprError),
+
+    // -- Database fetching errors
     FailedToFetchItem(sqlx::Error),
+    FailedToFetchAccount(sqlx::Error),
     FailedToParseItemType(strum::ParseError),
+    DatabaseFailedToGetAccountId,
 
     // -- Client errors
     Client(ClientError),
@@ -48,7 +52,8 @@ impl fmt::Display for Error {
     }
 }
 // endregion: --- Error boilerplate
-#[allow(unused)]
+
+
 #[derive(Debug)]
 pub enum ClientError {
     // -- Info

@@ -28,10 +28,10 @@ pub enum Error {
     FailedToGetSystemTimestamp,
     InvalidTimeDelta,
     SayAliasNotFoundInMessageContent,
+    FailedToGetSolveContextMap,
 
     // -- Client errors
     Client(ClientError),
-
 
     // -- Misc errors
     TestError, //not for production. only use this in one place at a time so you can know when testing if something went wrong
@@ -61,7 +61,7 @@ pub enum ClientError {
     NoSayContent,
 
     // -- Math
-    InvalidSolveExpression,
+    InvalidSolveExpression(String),
     NoSolveExpression,
 }
 
@@ -91,7 +91,7 @@ impl ClientError {
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
             // -- Math
             Self::NoSolveExpression => ClientErrInfo::new("No expression specified", "You have to specify an expression to solve"),
-            Self::InvalidSolveExpression => ClientErrInfo::new("Invalid expression", "You need to specify a valid expression"),
+            Self::InvalidSolveExpression(expr) => ClientErrInfo::new("Invalid expression", format!("`{expr}` is not a valid expression!").as_str()),
         }
     }
 }

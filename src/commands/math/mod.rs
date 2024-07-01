@@ -9,7 +9,7 @@ pub fn commands() -> Vec<Command> {
             solve::solve,
             vec_of_strings!("solve", "calculate", "calc", "cal", "sol", "solv"),
             sharedtype.clone(),
-            CommandHelp::new("Make the bot calculate an expression", " {expression}"),
+            CommandHelp::new("Make the bot calculate an expression using floating point math. Currently supported constants are `PI` and `TAU`, and basic trigonometry functions.", " {expression}"),
         ),
     ]
 }

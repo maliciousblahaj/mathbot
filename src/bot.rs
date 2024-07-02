@@ -1,12 +1,13 @@
 use std::sync::Arc;
 use crate::{appearance::embed::{error_embed, EmbedCtx}, error::ClientErrInfo, get_current_timestamp_secs, model::ModelController, send_embed, SendCtx};
-use serenity::{all::{Context, EventHandler, Message}, async_trait};
+use color_eyre::owo_colors::OwoColorize;
+use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
 use tokio::sync::Mutex;
 
 use crate::command::{CommandMap, CommandParams, CommandType};
 use crate::logging::log;
-use crate::{Result, Error, command::Command};
+use crate::{Result, Error, command::Command, BOT_VERSION};
 
 pub struct BotBuilder {
     prefix: String,
@@ -142,8 +143,16 @@ impl GlobalState {
 impl EventHandler for Bot {
     async fn message(&self, ctx: Context, msg: Message) {
         if let Err(e) = self.handle_message(ctx, msg).await{
-            log(e);
+            log(
+                format!("{} - {}", "ERROR".red(), e.red())
+            );
         }
+    }
+
+    async fn ready(&self, _ctx: Context, _data_about_bot: Ready) {
+        log(
+            format!("{} - Successfully started {}", "SYSTEM".blue(), BOT_VERSION.bold())
+        );
     }
 }
 

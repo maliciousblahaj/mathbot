@@ -3,7 +3,7 @@ use std::f64::consts::{PI, TAU};
 use evalexpr::{context_map, eval_with_context, Value};
 use mathbot::command::CommandParams;
 use mathbot::error::ClientError;
-use mathbot::{send_message, Error, Result, SendCtx};
+use mathbot::{send_text, Error, Result, SendCtx};
 
 
 
@@ -24,6 +24,6 @@ pub async fn solve(params: CommandParams) -> Result<()> {
     let result = eval_with_context(&expr, &context)
         .map_err(|_| Error::Client(ClientError::InvalidSolveExpression(expr.to_string())))?.to_string();
 
-    send_message(result, &SendCtx::from_params(&params)).await?;
+    send_text(result, &SendCtx::from_params(&params)).await?;
     Ok(())
 }

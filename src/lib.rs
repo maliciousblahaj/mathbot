@@ -63,10 +63,19 @@ pub async fn send_embed(embed: CreateEmbed, ctx: &SendCtx) -> Result<Message> {
         .map_err(|e| Error::FailedToSendMessage(e))
 }
 
-pub async fn send_message<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Result<Message> {
+pub async fn send_text<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Result<Message> {
     ctx.channel_id.say(
         &ctx.cache_http, 
         message.to_string(),
+    )
+        .await
+        .map_err(|e| Error::FailedToSendMessage(e))
+}
+
+pub async fn send_message (message: CreateMessage, ctx: &SendCtx) -> Result<Message> {
+    ctx.channel_id.send_message(
+        &ctx.cache_http, 
+        message
     )
         .await
         .map_err(|e| Error::FailedToSendMessage(e))

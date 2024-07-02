@@ -1,4 +1,4 @@
-use mathbot::{command::CommandParams, error::ClientError, send_message, Error, Result, SendCtx};
+use mathbot::{command::CommandParams, error::ClientError, send_text, Error, Result, SendCtx};
 
 pub async fn say(params: CommandParams) -> Result<()> {
     if params.args.is_empty() {
@@ -12,6 +12,6 @@ pub async fn say(params: CommandParams) -> Result<()> {
         searchcontent.find(sayalias)
         .ok_or(Error::SayAliasNotFoundInMessageContent)? + sayalias.len() + 1 
         ..];
-    send_message(content, &SendCtx::from_params(&params)).await?;
+    send_text(content, &SendCtx::from_params(&params)).await?;
     Ok(())
 }

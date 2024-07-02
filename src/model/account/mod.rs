@@ -22,8 +22,7 @@ impl AccountController{
     }
 
     pub async fn fetch_account(&self) -> Result<Account> {
-        let fetch_result = account_query_by_key!(&self.key, &self.mc.lock().await.database);
-        fetch_result
+        account_query_by_key!(&self.key, &self.mc.lock().await.database)
     }
 }
 
@@ -32,8 +31,8 @@ impl AccountController{
 pub enum AccountQueryKey{
     id(i64),
     user_id(i64),
-    user_name(String),
-    user_name_incomplete(String),
+    username(String),
+    username_incomplete(String),
 }
 
 pub struct Account {
@@ -46,7 +45,7 @@ pub struct Account {
     pub mine_slots: i64,
     pub previous_claim: i64,
     pub awaiting_claim: i64,
-    pub user_name: String,
+    pub username: String,
     pub user_bio: Option<String>,
     pub pronouns: Option<String>,
     pub avatar_url: String,

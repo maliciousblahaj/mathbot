@@ -1,6 +1,6 @@
 use mathbot::{command::{Command, CommandCategory, CommandHelp, CommandType}, vec_of_strings};
 
-pub mod say;
+mod say;
 
 pub fn commands() -> Vec<Command> {
     let sharedtype = CommandType::RootCommand { category: CommandCategory::Fun };

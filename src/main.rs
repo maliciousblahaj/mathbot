@@ -3,9 +3,7 @@ mod commands;
 
 use std::env;
 use mathbot::bot::BotBuilder;
-use mathbot::command::{self, Command, CommandHelp};
-use commands::{fun, info, math};
-use mathbot::vec_of_strings;
+use commands::{fun, info, math, test};
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
@@ -33,14 +31,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
         .register(info::commands())?
         .register(math::commands())?
         .register(fun::commands())?
-        .register_single(
-            Command::new(
-                commands::test::test,
-                vec_of_strings!["test", "test2", "t"], 
-                command::CommandType::RootCommand { category: (command::CommandCategory::Test) },
-                CommandHelp::new("responds with hello world.", ""),
-            )
-        )?
+        .register(test::commands())?
         .build()
         ;
 

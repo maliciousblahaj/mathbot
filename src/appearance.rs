@@ -1,21 +1,8 @@
 pub mod embed {
     use chrono::{Datelike, Local};
-    use phf::phf_map;
     use rand::seq::SliceRandom;
     use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
     use crate::{command::CommandParams, error::ClientErrInfo};
-
-    pub const _COLOR_TYPES: phf::Map<&'static str, i32>= phf_map! {
-        "success" => 0x64FF64,
-        "failure" => 0xFF6464, 
-        "info" => 0xFFFFFF,
-        "admin" => 0x000000,
-        "settings" => 0xCCCCCC,
-        "tool" => 0xC291FF,
-        "fun" => 0xF482FF,
-        "userinfo" => 0x02BFFF,
-        "currency" => 0x61FFFF,
-    };
 
     pub const FOOTER_MESSAGES: &'static [&'static str] = &[
             "Did you know that 99% of gambling addicts quit right before they win a zillion MathCoins?",
@@ -39,6 +26,38 @@ pub mod embed {
 
     pub const MATHBOT_AVATAR_URL: &'static str = "https://cdn.discordapp.com/avatars/992315441735270470/11acad15a810ef9d68cf14d7b07db43b.webp";
 
+    pub enum ButtonEmoji {
+        First,
+        Previous,
+        Next,
+        Last,
+        Confirm,
+        Decline,
+    }
+
+    impl ButtonEmoji {
+        pub fn emoji_str(&self) -> &str {
+            match self {
+                Self::First => "<:first:1128306473160691794>",
+                Self::Previous => "<:previous:1128306474372833343>",
+                Self::Next => "<:next:1128306476830703758>",
+                Self::Last => "<:last:1128306478370009121>",
+                Self::Confirm => "<:checkmark:1130571724979712072>",
+                Self::Decline => "<:crossmark:1130572943836053534>",
+            }
+        }
+        pub fn emoji_id(&self) -> u64 {
+            match self {
+                Self::First => 1128306473160691794,
+                Self::Previous => 1128306474372833343,
+                Self::Next => 1128306476830703758,
+                Self::Last => 1128306478370009121,
+                Self::Confirm => 1130571724979712072,
+                Self::Decline => 1130572943836053534,
+            } 
+        } 
+    }
+
     pub enum ColorType {
         Success,
         Failure,
@@ -50,6 +69,7 @@ pub mod embed {
         UserInfo,
         Currency,
     }
+
     impl ColorType {
         pub fn color(&self) -> u32 {
             match self {
@@ -105,4 +125,6 @@ pub mod embed {
             .title(clienterrinfo.get_title())
             .description(clienterrinfo.get_description())
     }
+
+    
 }

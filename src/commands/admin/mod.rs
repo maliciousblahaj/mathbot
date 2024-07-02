@@ -4,7 +4,7 @@ pub fn commands() -> Vec<Command> {
     let sharedtype = CommandType::RootCommand { category: CommandCategory::Admin };
     vec![
         Command::new(
-            super::test::test,
+            super::test::test::test,
             vec_of_strings!("test"),
             sharedtype.clone(),
             CommandHelp::new("desc", "usage"),

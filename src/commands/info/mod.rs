@@ -1,8 +1,8 @@
-use crate::{command::{Command, CommandCategory, CommandHelp, CommandType}, vec_of_strings};
+use mathbot::{command::{Command, CommandCategory, CommandHelp, CommandType}, vec_of_strings};
 
-pub mod ping;
-pub mod help;
-pub mod botinfo;
+mod ping;
+mod help;
+mod botinfo;
 
 pub fn commands() -> Vec<Command> {
     let sharedtype = CommandType::RootCommand { category: CommandCategory::Info };

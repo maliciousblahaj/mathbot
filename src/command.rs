@@ -34,14 +34,14 @@ impl CommandCategory {
 #[derive(Debug, Clone)]
 pub enum CommandType {
     RootCommand {category: CommandCategory},
-    SubCommand,
+    SubCommand {category: CommandCategory},
 }
 
 impl Display for CommandType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
-            Self::SubCommand => "Subcommand",
-            Self::RootCommand { category } => category.as_ref(),
+            Self::SubCommand { category } => format!("Subcommand of category {}", category.as_ref()),
+            Self::RootCommand { category } => format!("Root command of category {}", category.as_ref()),
         })
     }
 }
@@ -65,7 +65,7 @@ impl CommandIndex {
                 
                 Self::Root(map)
             },
-            CommandType::SubCommand => Self::Sub(Vec::new()),
+            CommandType::SubCommand { category: _ } => Self::Sub(Vec::new()),
         }
     }
     

@@ -29,7 +29,7 @@ impl BotBuilder {
         mut self,
         command: Command,
     ) -> Result<Self> {
-        if let CommandType::SubCommand = command.get_cmd_type() {
+        if let CommandType::SubCommand{category:_} = command.get_cmd_type() {
             return Err(Error::SubcommandAtRootLevel);
         }
         self.commands.register_command(command)?;

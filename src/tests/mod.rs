@@ -26,7 +26,7 @@ mod testcommands {
         let uwu = Command::new(
             uwucommand,
             vec_of_strings!("owo", "uwu", ":3", ">w<"),
-            CommandType::SubCommand,
+            CommandType::SubCommand { category: CommandCategory::Test},
             CommandHelp::new("",""),
         );
 

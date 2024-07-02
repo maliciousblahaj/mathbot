@@ -15,6 +15,8 @@ pub enum Error {
     CommandCategoryVecDoesntExist,
     CommandIndexDoesntExist,
     CommandIndexWrongType,
+    InvalidAccountQueryParameter(strum::ParseError, String),
+    InvalidAccountSearchParameter(String),
     
     // -- Bot run errors
     FailedToSendMessage(serenity::Error),
@@ -28,11 +30,13 @@ pub enum Error {
     SayAliasNotFoundInMessageContent,
     FailedToGetSolveContextMap(evalexpr::EvalexprError),
 
-    // -- Database fetching errors
+    // -- Database errors
     FailedToFetchItem(sqlx::Error),
     FailedToFetchAccount(sqlx::Error),
     FailedToParseItemType(strum::ParseError),
     DatabaseFailedToGetAccountId,
+    CannotGetAccountQueryItemAsI64,
+    CannotGetAccountQueryItemAsString,
 
     // -- Client errors
     Client(ClientError),

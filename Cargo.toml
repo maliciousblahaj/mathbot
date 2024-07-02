@@ -20,3 +20,4 @@ indexmap = "2.2"
 derive_more = "0.99"
 evalexpr = "11.3"
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite"]}
+enum-as-inner = "0.6"

@@ -17,6 +17,7 @@ pub enum Error {
     CommandIndexWrongType,
     InvalidAccountQueryParameter(strum::ParseError, String),
     InvalidAccountSearchParameter(String),
+    CommandTypeNotRegistered,
     
     // -- Bot run errors
     FailedToSendMessage(serenity::Error),
@@ -29,6 +30,9 @@ pub enum Error {
     InvalidTimeDelta,
     SayAliasNotFoundInMessageContent,
     FailedToGetSolveContextMap(evalexpr::EvalexprError),
+    ButtonComponentNotFound,
+    NonButtonComponentInMessage,
+    NoEmojiOnButton,
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),
@@ -52,7 +56,7 @@ impl error::Error for Error{}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Error: {}", self.as_ref().to_string())
+        write!(f, "Error: {:?}", self)
     }
 }
 // endregion: --- Error boilerplate

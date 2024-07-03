@@ -1,6 +1,6 @@
 /*
 vec_of_strings!("solve", "calculate", "calc", "cal", "sol", "solv"),
-sharedtype.clone(),
+category.clone(),
 CommandHelp::new("Mak
 */
 

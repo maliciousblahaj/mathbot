@@ -10,7 +10,7 @@ use tokio::sync::Mutex;
 /// 
 /// Having the category of Admin means the command only generates in the help menu for admins
 /// and having the category of Test means the command does not show up in the help menu at all
-#[derive(Debug, Clone, strum_macros::AsRefStr, strum_macros::EnumIter)]
+#[derive(Debug, Clone, strum_macros::AsRefStr, strum_macros::EnumIter, Hash, PartialEq, Eq)]
 pub enum CommandCategory {
     Info,
     User,
@@ -33,15 +33,15 @@ impl CommandCategory {
 /// Commands form a tree structure, where every command, root or sub, can have a subcommand
 #[derive(Debug, Clone)]
 pub enum CommandType {
-    RootCommand {category: CommandCategory},
-    SubCommand {category: CommandCategory},
+    RootCommand,
+    SubCommand,
 }
 
 impl Display for CommandType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
-            Self::SubCommand { category } => format!("Subcommand of category {}", category.as_ref()),
-            Self::RootCommand { category } => format!("Root command of category {}", category.as_ref()),
+            Self::SubCommand => format!("Subcommand"),
+            Self::RootCommand => format!("Root command"),
         })
     }
 }
@@ -50,33 +50,30 @@ impl Display for CommandType {
 /// else just by name
 #[derive(Debug, Clone)]
 pub enum CommandIndex {
-    Root(IndexMap<String, Vec<String>>),
+    Root(IndexMap<CommandCategory, Vec<String>>),
     Sub(Vec<String>),
 }
 
 impl CommandIndex {
     pub fn new(cmd_type: &CommandType) -> Self {
         match cmd_type {
-            CommandType::RootCommand { category: _ } => {    
+            CommandType::RootCommand => {    
                 let mut map = IndexMap::new();
                 for category in CommandCategory::iter() {
-                    map.insert(category.get_string(), Vec::new());
+                    map.insert(category, Vec::new());
                 }
                 
                 Self::Root(map)
             },
-            CommandType::SubCommand { category: _ } => Self::Sub(Vec::new()),
+            CommandType::SubCommand => Self::Sub(Vec::new()),
         }
     }
     
     pub fn insert(&mut self, command: &Command) -> Result<()>{
         match self {
             Self::Root(map) => {
-                let key = match command.get_cmd_type() {
-                    CommandType::RootCommand{category} => category,
-                    _ => {return Err(Error::IncompatibleCommandTypes)}
-                }.get_string();
-                let cmd_vec = map.get_mut(&key)
+                let key = command.get_cmd_category();
+                let cmd_vec = map.get_mut(key)
                     .ok_or(Error::CommandCategoryKeyDoesntExist)?;
                 cmd_vec.push(command.get_aliases()[0].to_string());
             },
@@ -132,7 +129,7 @@ impl CommandMap {
         let name = command.get_name().clone();
 
         if self.command_index.is_none() {
-            self.command_index = Some(CommandIndex::new(command.get_cmd_type()));
+            self.command_index = Some(CommandIndex::new(command.get_cmd_type()?));
         }
 
         if self.commands.contains_key(&name) {
@@ -162,7 +159,8 @@ pub struct Command
 {
     handle: Option<Arc<Mutex<CommandHandler>>>,
     aliases: Vec<String>,
-    cmd_type: CommandType,
+    cmd_type: Option<CommandType>,
+    cmd_category: CommandCategory,
     help: CommandHelp,
     subcommands: Option<CommandMap>,
 }
@@ -172,7 +170,7 @@ impl Command
     pub fn new<T> (
         handle: fn(CommandParams) -> T, 
         aliases: Vec<String>, 
-        cmd_type: CommandType,
+        cmd_category: CommandCategory,
         help: CommandHelp,
     ) -> Self
     where 
@@ -182,10 +180,15 @@ impl Command
         Self {
             handle: Some(Arc::new(Mutex::new(handle))),
             aliases,
-            cmd_type,
+            cmd_type: None,
+            cmd_category,
             help,
             subcommands: None,
         }
+    }
+
+    pub fn set_cmd_type(&mut self, cmd_type: CommandType) {
+        self.cmd_type = Some(cmd_type);
     }
 
     pub async fn run(&self, params: CommandParams) -> Result<()> {
@@ -206,8 +209,12 @@ impl Command
         &self.aliases[0]
     }
 
-    pub fn get_cmd_type(&self) -> &CommandType {
-        &self.cmd_type
+    pub fn get_cmd_type(&self) -> Result<&CommandType> {
+        (self.cmd_type.as_ref()).ok_or(Error::CommandTypeNotRegistered)
+    }
+
+    pub fn get_cmd_category(&self) -> &CommandCategory {
+        &self.cmd_category
     }
 
     pub fn get_subcommands(&self) -> Option<&CommandMap> {
@@ -240,11 +247,9 @@ impl Command
     /// Register a single subcommand
     pub fn register_single(
         mut self,
-        command: Command,
+        mut command: Command,
     ) -> Result<Self> {
-        if let CommandType::RootCommand { category:_ } = command.get_cmd_type() {
-            return Err(Error::RootCommandAtSubLevel);
-        }
+        command.set_cmd_type(CommandType::SubCommand);
         if self.subcommands.is_none() {
             self.subcommands = Some(CommandMap::new())
         }
@@ -272,6 +277,7 @@ impl Clone for Command {
             handle: None,
             aliases: self.aliases.clone(),
             cmd_type: self.cmd_type.clone(),
+            cmd_category: self.cmd_category.clone(),
             help: self.help.clone(),
             subcommands: self.subcommands.clone(),
         }

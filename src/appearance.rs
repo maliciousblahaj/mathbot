@@ -1,3 +1,7 @@
+use serenity::all::Message;
+
+use crate::command::CommandParams;
+
 pub mod embed {
     use chrono::{Datelike, Local};
     use rand::seq::SliceRandom;
@@ -128,3 +132,12 @@ pub mod embed {
 
     
 }
+
+#[allow(unused)]
+pub struct ButtonMessage <'a> {
+    message: Message,
+    params: &'a CommandParams,
+    timeout: u32,
+}
+
+pub struct CallbackButton{}

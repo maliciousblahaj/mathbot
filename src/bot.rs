@@ -28,11 +28,9 @@ impl BotBuilder {
     /// Register a command
     pub fn register_single(
         mut self,
-        command: Command,
+        mut command: Command,
     ) -> Result<Self> {
-        if let CommandType::SubCommand{category:_} = command.get_cmd_type() {
-            return Err(Error::SubcommandAtRootLevel);
-        }
+        command.set_cmd_type(CommandType::RootCommand);
         self.commands.register_command(command)?;
 
         Ok(self)
@@ -151,7 +149,7 @@ impl EventHandler for Bot {
 
     async fn ready(&self, _ctx: Context, _data_about_bot: Ready) {
         log(
-            format!("{} - Successfully started {}", "SYSTEM".blue(), BOT_VERSION.bold())
+            format!("{} - {} successfully connected", "SYSTEM".blue(), BOT_VERSION.bold())
         );
     }
 }

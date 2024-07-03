@@ -3,7 +3,7 @@ use std::fmt::Display;
 use serenity::all::CreateEmbed;
 
 use mathbot::appearance::embed::{base_embed, ColorType, EmbedCtx};
-use mathbot::command::{Command, CommandIndex, CommandParams};
+use mathbot::command::{Command, CommandCategory, CommandIndex, CommandParams};
 use mathbot::parser::parse_command;
 use mathbot::{send_embed, Error, Result, SendCtx};
 
@@ -23,15 +23,15 @@ pub async fn help(params: CommandParams) -> Result<()> {
         .title("Help menu")
         .description(format!("Here are all of the base commands. To run the commands specify `{prefix}` before them. Write `{prefix}help {{command}}` to learn more about the commands"));
 
-    for (name, cmdvec) in 
+    for (category, cmdvec) in 
         match params.bot_commands.get_command_index().ok_or(Error::CommandIndexDoesntExist)? {
             CommandIndex::Root(indexmap) => indexmap,
             _ => {return Err(Error::SubcommandIndexAtRootLevel);}
         }
     {
-        match name.to_lowercase().as_str() {
-            "test" => {continue;},
-            "admin" => {}, //TODO: do an user check once the database is configured
+        match category {
+            CommandCategory::Test => {continue;},
+            CommandCategory::Admin => {}, //TODO: do an user check once the database is configured
             _ => (),
         }
         let mut s = String::new();
@@ -42,7 +42,7 @@ pub async fn help(params: CommandParams) -> Result<()> {
             Some(cleaned) => cleaned.to_string(),
             None => s,
         };
-        embed = embed.field(name, s, false);
+        embed = embed.field(category.as_ref(), s, false);
     }
     
     send_embed(embed, &SendCtx::from_params(&params)).await?;
@@ -62,7 +62,7 @@ fn help_embed<S: AsRef<str> + Display>(params: &CommandParams, command: &Command
                 .replace("{{command}}", format!("{prefix}{commandstring}").as_str())
             )
         .field("Usage", format!("`{}{}{}`",prefix, commandstring, commandhelp.get_usage()),true)
-        .field("Type", format!("`{}`", command.get_cmd_type().to_string()), true);
+        .field("Type", format!("`{}`", command.get_cmd_type()?.to_string()), true);
     
     if command.has_subcommands() {
         embed = embed.field(

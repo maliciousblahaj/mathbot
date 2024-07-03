@@ -5,5 +5,5 @@
     "editor.autoClosingComments": "never",
     "rust-analyzer.procMacro.enable": true,
     "rust-analyzer.diagnostics.disabled": ["unresolved-import"],
-    "rust-analyzer.linkedProjects": ["Cargo.toml", "mathbot_macros/Cargo.toml"],
+    "rust-analyzer.linkedProjects": ["Cargo.toml"], //"mathbot_macros/Cargo.toml"
 }

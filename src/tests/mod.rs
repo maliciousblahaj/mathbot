@@ -1,6 +1,5 @@
 use std::io::Write;
 
-use command::CommandType;
 use crate::bot::{Bot, BotBuilder};
 use crate::{command::{self, CommandParams}, Result};
 
@@ -20,27 +19,27 @@ mod testcommands {
         let test = Command::new(
             testcommand, 
             vec_of_strings!("test", "test2", "t"),
-            CommandType::RootCommand { category: CommandCategory::Test },
+            CommandCategory::Test,
             CommandHelp::new("",""),
         );
         let uwu = Command::new(
             uwucommand,
             vec_of_strings!("owo", "uwu", ":3", ">w<"),
-            CommandType::SubCommand { category: CommandCategory::Test},
+            CommandCategory::Test,
             CommandHelp::new("",""),
         );
 
         let hi = Command::new(
             hicommand, 
             vec_of_strings!("hi", "hello", "haiii", "haii", "hai", "haiiii", "h"),
-            CommandType::RootCommand { category: CommandCategory::Test },
+            CommandCategory::Test,
             CommandHelp::new("",""),
         ).register_single(uwu).unwrap();
 
         let bye = Command::new(
             byecommand,
             vec_of_strings!("bye", "byy"),
-            CommandType::RootCommand { category: CommandCategory::Info },
+            CommandCategory::Test,
             CommandHelp::new("",""),
         );
 

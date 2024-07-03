@@ -86,7 +86,7 @@ impl Bot {
             return Ok(());
         }
 
-        log(&msg.content);
+        log(format!("{:5} - {} - {}", "[MSG]".bright_green(), &msg.author.name, &msg.content));
 
         let parsed = match self.parse_message(&msg.content) {
             //if the message is not a command, return
@@ -142,14 +142,14 @@ impl EventHandler for Bot {
     async fn message(&self, ctx: Context, msg: Message) {
         if let Err(e) = self.handle_message(ctx, msg).await{
             log(
-                format!("{} - {}", "ERROR".red(), e.red())
+                format!("{:5} - {}", "[ERR]".red(), e.red())
             );
         }
     }
 
     async fn ready(&self, _ctx: Context, _data_about_bot: Ready) {
         log(
-            format!("{} - {} successfully connected", "SYSTEM".blue(), BOT_VERSION.bold())
+            format!("{:5} - {} successfully connected", "[SYS]".blue(), BOT_VERSION.bold())
         );
     }
 }

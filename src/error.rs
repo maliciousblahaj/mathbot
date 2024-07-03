@@ -37,6 +37,7 @@ pub enum Error {
     InteractionDataKindNotAButton,
     InteractionButtonIdNotFound,
     FailedToDeferButtonMessage(serenity::Error),
+    InvalidInteractionId,
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),

@@ -287,6 +287,7 @@ impl Clone for Command {
 /// Struct for parameters to a command
 /// 
 /// Includes args, context, and message
+#[derive(Clone)]
 pub struct CommandParams{
     pub args: Vec<String>,
     pub args_str: String,

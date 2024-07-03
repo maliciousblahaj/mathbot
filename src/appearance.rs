@@ -152,18 +152,16 @@ pub struct ButtonInfo {
     custom_id: String,
     emoji: EmojiId,
     style: ButtonStyle,
-    callback_embed: Box<dyn Fn(&CommandParams) -> CreateEmbed + 'static + Send>
 }
+//  embed callback:      where T: Fn(&CommandParams) -> CreateEmbed + 'static + Send
 
 impl ButtonInfo {
-    pub fn new<T, S: AsRef<str> + Display>(custom_id: S, emoji: EmojiId, style: ButtonStyle, callback_embed: T) -> Self
-        where T: Fn(&CommandParams) -> CreateEmbed + 'static + Send
+    pub fn new<S: AsRef<str> + Display>(custom_id: S, emoji: EmojiId, style: ButtonStyle) -> Self
     {
         Self {
             custom_id: custom_id.to_string(),
             emoji,
             style,
-            callback_embed: Box::new(callback_embed),
         }
     }
 }
@@ -173,12 +171,11 @@ pub struct ButtonMessage {
     message: CreateMessage,
     sent_message: Option<Message>,
     params: CommandParams,
-    timeout: u64,
     button_index: IndexMap<String, ButtonInfo>,
 }
 
 impl ButtonMessage {
-    pub fn new(message: CreateMessage, params: CommandParams, timeout: u64, buttons: Vec<ButtonInfo> ) -> Self {
+    pub fn new(message: CreateMessage, params: &CommandParams, buttons: Vec<ButtonInfo> ) -> Self {
         let mut button_index = IndexMap::with_capacity(buttons.len());
         for buttoninfo in buttons {
             button_index.insert(buttoninfo.custom_id.clone(), buttoninfo);
@@ -186,13 +183,12 @@ impl ButtonMessage {
         Self {
             message,
             sent_message: None,
-            params,
-            timeout,
+            params: params.clone(),
             button_index,
         }
     }
 
-    pub async fn send(mut self) -> Result<Self> {
+    pub async fn send(&mut self) -> Result<&mut Self> {
         self.sent_message = Some(send_message(
             self.message.clone()
                 .components(vec![self.get_buttons()]),
@@ -235,12 +231,12 @@ impl ButtonMessage {
     }
 
     
-    pub async fn run_interaction(&mut self) -> Result<Option<String>> {
+    pub async fn run_interaction(&mut self, timeout: u64) -> Result<Option<String>> {
         if self.sent_message.is_none() {return Err(Error::ButtonMessageNotSentYet);}
 
         let interaction = match self.sent_message.as_mut().unwrap()
             .await_component_interaction(&self.params.ctx.shard)
-            .timeout(Duration::from_secs(self.timeout))
+            .timeout(Duration::from_secs(timeout))
             .author_id(self.params.msg.author.id.clone())
             .await
             {
@@ -250,16 +246,33 @@ impl ButtonMessage {
 
         let ComponentInteractionDataKind::Button = interaction.data.kind else {return Ok(None);};
         
+        let custom_id = interaction.data.custom_id.clone();
+
+        let cache_http = self.params.ctx.http.clone();
+        tokio::spawn(async move {
+            interaction.defer(cache_http).await
+        });
+
+        Ok(Some(custom_id))
+    }
+
+    pub async fn edit_message(&mut self, embed: CreateEmbed) -> Result<()> {
         let updated = EditMessage::new()
-            .embed(
-                (self.button_index.get(&interaction.data.custom_id).ok_or(Error::InteractionButtonIdNotFound)?.callback_embed)(&self.params)
-            )
-            .components(vec![self.get_disabled_buttons()]);
+            .embed(embed)
+            .components(vec![self.get_buttons()]);
+
         self.sent_message.as_mut().unwrap().edit(&self.params.ctx.http, updated)
             .await.map_err(|e| Error::FailedToEditMessage(e))?;
-        
-        interaction.defer(&self.params.ctx.http).await.map_err(|e| Error::FailedToDeferButtonMessage(e))?;
+        Ok(())
+    }
 
-        Ok(Some(interaction.data.custom_id))
+    pub async fn edit_message_disabled(&mut self, embed: CreateEmbed) -> Result<()> {
+        let updated = EditMessage::new()
+            .embed(embed)
+            .components(vec![self.get_disabled_buttons()]);
+
+        self.sent_message.as_mut().unwrap().edit(&self.params.ctx.http, updated)
+            .await.map_err(|e| Error::FailedToEditMessage(e))?;
+        Ok(())
     }
 }

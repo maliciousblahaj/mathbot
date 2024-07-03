@@ -1,7 +1,7 @@
 use mathbot::appearance::embed::{base_embed, ButtonEmoji, ColorType, EmbedCtx};
 use mathbot::appearance::{ButtonInfo, ButtonMessage};
 use mathbot::command::CommandParams;
-use mathbot::Result;
+use mathbot::{Error, Result};
 use serenity::all::{ButtonStyle, CreateEmbed, CreateMessage};
 
 pub async fn test(params: CommandParams) -> Result<()> {
@@ -10,27 +10,32 @@ pub async fn test(params: CommandParams) -> Result<()> {
             .title("Confirm Test")
             .description("Are you sure you want to confirm?")
     );
-    let message = ButtonMessage::new(
+    let mut message = ButtonMessage::new(
         initmsg,
-        params, 
-        20,
+        &params, 
         vec![
             ButtonInfo::new(
                 "confirm",
                 ButtonEmoji::Confirm.emoji(),
                 ButtonStyle::Success,
-                |params| base_embed(&EmbedCtx::from_params(params), ColorType::Success).title("Confirmed!"),
             ),
             ButtonInfo::new(
                 "decline",
                 ButtonEmoji::Decline.emoji(),
                 ButtonStyle::Danger,
-                |params| base_embed(&EmbedCtx::from_params(params), ColorType::Failure).title("Declined!"),
             ),
         ]
     );
-
-    message.send().await?.run_interaction().await?;
+    if let Some(id) = message.send().await?.run_interaction(20).await? {
+        let embed = match id.as_str() {
+            "confirm" => 
+                base_embed(&EmbedCtx::from_params(&params), ColorType::Success).title("Confirmed!"),
+            "decline" => 
+                base_embed(&EmbedCtx::from_params(&params), ColorType::Failure).title("Declined!"),
+            _ => {return Err(Error::InvalidInteractionId)},
+        };
+        message.edit_message_disabled(embed).await?;
+    }
     
     Ok(())
 }

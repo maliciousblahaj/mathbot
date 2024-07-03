@@ -1,8 +1,8 @@
-use mathbot::appearance::embed::{base_embed, base_embed_no_author, EmbedCtx};
-use mathbot::appearance::{ButtonInfo, ButtonMessage};
+use mathbot::ui::embed::{base_embed, base_embed_no_author, EmbedCtx};
+use mathbot::ui::{ButtonInfo, ButtonMessage};
 use mathbot::command::CommandParams;
 use mathbot::{Result, Error};
-use mathbot::appearance::embed::ColorType;
+use mathbot::ui::embed::ColorType;
 use serenity::all::{ButtonStyle, Color, CreateButton, CreateEmbed, CreateMessage};
 
 pub async fn account(params: CommandParams) -> Result<()> {

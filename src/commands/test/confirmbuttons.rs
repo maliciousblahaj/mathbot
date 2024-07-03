@@ -1,5 +1,5 @@
-use mathbot::appearance::embed::{base_embed, ButtonEmoji, ColorType, EmbedCtx};
-use mathbot::appearance::{ButtonInfo, ButtonMessage};
+use mathbot::ui::embed::{base_embed, ButtonEmoji, ColorType, EmbedCtx};
+use mathbot::ui::{ButtonInfo, ButtonMessage};
 use mathbot::command::CommandParams;
 use mathbot::{Error, Result};
 use serenity::all::{ButtonStyle, CreateButton, CreateEmbed, CreateMessage};

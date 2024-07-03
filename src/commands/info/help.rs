@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serenity::all::CreateEmbed;
 
-use mathbot::appearance::embed::{base_embed, ColorType, EmbedCtx};
+use mathbot::ui::embed::{base_embed, ColorType, EmbedCtx};
 use mathbot::command::{Command, CommandCategory, CommandIndex, CommandParams};
 use mathbot::parser::parse_command;
 use mathbot::{send_embed, Error, Result, SendCtx};

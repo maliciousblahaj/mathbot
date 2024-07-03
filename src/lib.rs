@@ -4,7 +4,7 @@ pub mod command;
 pub mod model;
 pub mod parser;
 pub mod logging;
-pub mod appearance;
+pub mod ui;
 
 #[cfg(test)]
 #[allow(unused)]

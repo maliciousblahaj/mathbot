@@ -1,5 +1,5 @@
 use chrono::TimeDelta;
-use mathbot::{appearance::embed::{base_embed, ColorType, EmbedCtx}, command::CommandParams, get_current_timestamp_secs, SendCtx};
+use mathbot::{ui::embed::{base_embed, ColorType, EmbedCtx}, command::CommandParams, get_current_timestamp_secs, SendCtx};
 use mathbot::{send_embed, Result, BOT_VERSION};
 
 pub async fn botinfo(params: CommandParams) -> Result<()> {

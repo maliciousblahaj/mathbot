@@ -20,7 +20,7 @@ macro_rules! item_query_by_key_value_alias {
     };
 }
 
-//AHHH WHY DO I HAVE TO WRITE A MACRO TO WRITE A MACRO TO WRITE A MACRO????
+//BOOOOOOOOOOOOOOOOOOOOOILERPLATE
 #[macro_export]
 macro_rules! item_query_by_key {
     ($key:expr, $database:expr) => {

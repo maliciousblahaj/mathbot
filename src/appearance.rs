@@ -1,11 +1,16 @@
-use serenity::all::Message;
+use std::fmt::Display;
+use std::time::Duration;
+
+use indexmap::IndexMap;
+use serenity::all::{ButtonStyle, ComponentInteractionDataKind, CreateActionRow, CreateButton, CreateEmbed, CreateMessage, EditMessage, EmojiId, Message};
 
 use crate::command::CommandParams;
+use crate::{send_message, Error, Result, SendCtx};
 
 pub mod embed {
     use chrono::{Datelike, Local};
     use rand::seq::SliceRandom;
-    use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, Timestamp};
+    use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, EmojiId, Timestamp};
     use crate::{command::CommandParams, error::ClientErrInfo};
 
     pub const FOOTER_MESSAGES: &'static [&'static str] = &[
@@ -58,6 +63,16 @@ pub mod embed {
                 Self::Last => 1128306478370009121,
                 Self::Confirm => 1130571724979712072,
                 Self::Decline => 1130572943836053534,
+            } 
+        } 
+        pub fn emoji(&self) -> EmojiId {
+            match self {
+                Self::First => EmojiId::new(1128306473160691794),
+                Self::Previous => EmojiId::new(1128306474372833343),
+                Self::Next => EmojiId::new(1128306476830703758),
+                Self::Last => EmojiId::new(1128306478370009121),
+                Self::Confirm => EmojiId::new(1130571724979712072),
+                Self::Decline => EmojiId::new(1130572943836053534),
             } 
         } 
     }
@@ -133,11 +148,118 @@ pub mod embed {
     
 }
 
-#[allow(unused)]
-pub struct ButtonMessage <'a> {
-    message: Message,
-    params: &'a CommandParams,
-    timeout: u32,
+pub struct ButtonInfo {
+    custom_id: String,
+    emoji: EmojiId,
+    style: ButtonStyle,
+    callback_embed: Box<dyn Fn(&CommandParams) -> CreateEmbed + 'static + Send>
 }
 
-pub struct CallbackButton{}
+impl ButtonInfo {
+    pub fn new<T, S: AsRef<str> + Display>(custom_id: S, emoji: EmojiId, style: ButtonStyle, callback_embed: T) -> Self
+        where T: Fn(&CommandParams) -> CreateEmbed + 'static + Send
+    {
+        Self {
+            custom_id: custom_id.to_string(),
+            emoji,
+            style,
+            callback_embed: Box::new(callback_embed),
+        }
+    }
+}
+
+#[allow(unused)]
+pub struct ButtonMessage {
+    message: CreateMessage,
+    sent_message: Option<Message>,
+    params: CommandParams,
+    timeout: u64,
+    button_index: IndexMap<String, ButtonInfo>,
+}
+
+impl ButtonMessage {
+    pub fn new(message: CreateMessage, params: CommandParams, timeout: u64, buttons: Vec<ButtonInfo> ) -> Self {
+        let mut button_index = IndexMap::with_capacity(buttons.len());
+        for buttoninfo in buttons {
+            button_index.insert(buttoninfo.custom_id.clone(), buttoninfo);
+        }
+        Self {
+            message,
+            sent_message: None,
+            params,
+            timeout,
+            button_index,
+        }
+    }
+
+    pub async fn send(mut self) -> Result<Self> {
+        self.sent_message = Some(send_message(
+            self.message.clone()
+                .components(vec![self.get_buttons()]),
+            &SendCtx::from_params(&self.params)
+        ).await?);
+        Ok(self)
+    }
+    pub fn get_buttons(&self) -> CreateActionRow {
+        let mut newbuttons = Vec::new();
+        for (buttonid, buttoninfo) in self.button_index.iter() {
+            newbuttons.push(
+                CreateButton::new(buttonid)
+                    .emoji(buttoninfo.emoji)
+                    .style(buttoninfo.style)
+            )
+        }
+        CreateActionRow::Buttons(newbuttons)
+    } 
+
+    pub fn get_disabled_buttons(&self) -> CreateActionRow {
+        let mut newbuttons = Vec::new();
+        for (buttonid, buttoninfo) in self.button_index.iter() {
+            newbuttons.push(
+                CreateButton::new(buttonid)
+                    .emoji(buttoninfo.emoji)
+                    .disabled(true)
+                    .style(ButtonStyle::Secondary)
+            )
+        }
+        CreateActionRow::Buttons(newbuttons)
+    } 
+
+    pub async fn disable_buttons(&mut self) -> Result<()> {
+        if self.sent_message.is_none() {return Err(Error::ButtonMessageNotSentYet);}
+
+        let updated = EditMessage::new().components(vec![self.get_disabled_buttons()]);
+        self.sent_message.as_mut().unwrap().edit(&self.params.ctx.http, updated)
+            .await.map_err(|e| Error::FailedToEditMessage(e))?;
+        return Ok(());
+    }
+
+    
+    pub async fn run_interaction(&mut self) -> Result<Option<String>> {
+        if self.sent_message.is_none() {return Err(Error::ButtonMessageNotSentYet);}
+
+        let interaction = match self.sent_message.as_mut().unwrap()
+            .await_component_interaction(&self.params.ctx.shard)
+            .timeout(Duration::from_secs(self.timeout))
+            .author_id(self.params.msg.author.id.clone())
+            .await
+            {
+                Some(x) => x,
+                None => {self.disable_buttons().await?; return Ok(None);},
+            };
+
+        let ComponentInteractionDataKind::Button = interaction.data.kind else {return Ok(None);};
+        
+        let updated = EditMessage::new()
+            .embed(
+                (self.button_index.get(&interaction.data.custom_id).ok_or(Error::InteractionButtonIdNotFound)?.callback_embed)(&self.params)
+            )
+            .components(vec![self.get_disabled_buttons()]);
+        self.sent_message.as_mut().unwrap().edit(&self.params.ctx.http, updated)
+            .await.map_err(|e| Error::FailedToEditMessage(e))?;
+        
+        interaction.defer(&self.params.ctx.http).await.map_err(|e| Error::FailedToDeferButtonMessage(e))?;
+
+        Ok(Some(interaction.data.custom_id))
+    }
+}

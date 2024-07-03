@@ -18,6 +18,7 @@ pub enum Error {
     InvalidAccountQueryParameter(strum::ParseError, String),
     InvalidAccountSearchParameter(String),
     CommandTypeNotRegistered,
+    ButtonMessageNotSentYet,
     
     // -- Bot run errors
     FailedToSendMessage(serenity::Error),
@@ -33,6 +34,9 @@ pub enum Error {
     ButtonComponentNotFound,
     NonButtonComponentInMessage,
     NoEmojiOnButton,
+    InteractionDataKindNotAButton,
+    InteractionButtonIdNotFound,
+    FailedToDeferButtonMessage(serenity::Error),
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),

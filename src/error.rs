@@ -38,14 +38,17 @@ pub enum Error {
     InteractionButtonIdNotFound,
     FailedToDeferButtonMessage(serenity::Error),
     InvalidInteractionId,
+    FetchedSlotsBeforeFetchingAccount,
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),
     FailedToFetchAccount(sqlx::Error),
+    FailedToFetchAccountSlots(sqlx::Error),
     FailedToParseItemType(strum::ParseError),
     DatabaseFailedToGetAccountId,
     CannotGetAccountQueryItemAsI64,
     CannotGetAccountQueryItemAsString,
+    FailedToCreateAccount(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),

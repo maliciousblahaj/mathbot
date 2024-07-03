@@ -10,6 +10,7 @@ pub mod macros;
 pub struct AccountController {
     mc: Arc<Mutex<ModelController>>,
     key: AccountQueryKey,
+    fetched_account: Option<Account>,
 }
 
 //WHEN SIGNING UP, PREVENT USERS FROM USING JUST NUMBERS AS THEIR USERNAME
@@ -17,14 +18,36 @@ impl AccountController{
     pub fn new(mc: &Arc<Mutex<ModelController>>, key: AccountQueryKey) -> Self {
         Self {
             mc: mc.clone(),
-            key: key
+            key: key,
+            fetched_account: None,
         }
     }
 
-    pub async fn fetch_account(&self) -> Result<Account> {
-        account_query_by_key!(&self.key, &self.mc.lock().await.database)
+    pub async fn fetch_account(&mut self) -> Result<Account> {
+        let fetched_account = account_query_by_key!(&self.key, &self.mc.lock().await.database)?;
+        self.fetched_account = Some(fetched_account.clone());
+        Ok(fetched_account)
+    }
+
+    pub async fn fetch_slots(&self) -> Result<Vec<Slot>> {
+        let Some(account) = &self.fetched_account else {return Err(Error::FetchedSlotsBeforeFetchingAccount);};
+        sqlx::query_as!(
+            Slot,
+            "SELECT id, account_id, item_id FROM Slots WHERE id =
+            (SELECT id FROM Accounts WHERE account_id=?)", account.id
+        )
+            .fetch_all(&self.mc.lock().await.database)
+            .await
+            .map_err(|e| Error::FailedToFetchAccountSlots(e))
     }
 }
+
+pub struct Slot {
+    pub id: i64,
+    pub account_id: i64,
+    pub item_id: i64
+}
+
 
 #[allow(non_camel_case_types)]
 #[derive(strum_macros::AsRefStr, Clone)]
@@ -35,6 +58,7 @@ pub enum AccountQueryKey{
     username_incomplete(String),
 }
 
+#[derive(Clone)]
 pub struct Account {
     pub id: i64,
     pub user_id: i64,

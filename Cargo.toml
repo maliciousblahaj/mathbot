@@ -18,3 +18,4 @@ rand = "0.8"
 indexmap = "2.2"
 evalexpr = "11.3"
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite"]}
+itertools = "0.13"

@@ -1,5 +1,5 @@
 CREATE TABLE "Accounts" (
-	"id"	        INTEGER PRIMARY KEY, 
+	"id"	        INTEGER PRIMARY KEY NOT NULL, 
 	"user_id"	    INTEGER NOT NULL UNIQUE, --discord userid
 	"created"	    INTEGER NOT NULL, --unix timestamp
 	"balance"	    REAL NOT NULL DEFAULT 100, 
@@ -25,7 +25,7 @@ CREATE TABLE "Inventory" (
 );
 
 CREATE TABLE "Items" (
-        "id"    		INTEGER PRIMARY KEY,
+        "id"    		INTEGER PRIMARY KEY NOT NULL,
         "name_id"   	TEXT NOT NULL UNIQUE,
         "emoji_id"  	TEXT, --optional
         "image_url" 	TEXT, --optional
@@ -38,7 +38,7 @@ CREATE TABLE "Items" (
 );
 
 CREATE TABLE "Slots" (
-	"id"			INTEGER PRIMARY KEY,
+	"id"			INTEGER PRIMARY KEY NOT NULL,
 	"account_id"	INTEGER NOT NULL,
 	"item_id"		INTEGER NOT NULL,
 	FOREIGN KEY("account_id") REFERENCES "Accounts"("id"),

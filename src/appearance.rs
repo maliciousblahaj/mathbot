@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::time::Duration;
 
 use indexmap::IndexMap;
-use serenity::all::{ButtonStyle, ComponentInteractionDataKind, CreateActionRow, CreateButton, CreateEmbed, CreateMessage, EditMessage, EmojiId, Message};
+use serenity::all::{ButtonStyle, ComponentInteractionDataKind, CreateActionRow, CreateButton, CreateEmbed, CreateMessage, EditMessage, Message};
 
 use crate::command::CommandParams;
 use crate::{send_message, Error, Result, SendCtx};
@@ -139,6 +139,18 @@ pub mod embed {
             .color(Colour::new(colortype.color()))
     }
 
+    pub fn base_embed_no_author(colortype: ColorType) -> CreateEmbed{
+        let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap().to_string();
+        let footer = CreateEmbedFooter::new(randomfootermsg)
+            .icon_url(MATHBOT_AVATAR_URL.to_string());
+        let timestamp = Local::now().with_year(1987).unwrap_or(Local::now()).timestamp();
+
+        CreateEmbed::new()
+            .footer(footer)
+            .timestamp(Timestamp::from_unix_timestamp(timestamp).unwrap_or(Timestamp::now()))
+            .color(Colour::new(colortype.color()))
+    }
+
     pub fn error_embed(ctx: &EmbedCtx, clienterrinfo: ClientErrInfo) -> CreateEmbed {
         base_embed(ctx, ColorType::Failure)
             .title(clienterrinfo.get_title())
@@ -148,20 +160,20 @@ pub mod embed {
     
 }
 
+
 pub struct ButtonInfo {
     custom_id: String,
-    emoji: EmojiId,
-    style: ButtonStyle,
+    button: CreateButton,
+
 }
 //  embed callback:      where T: Fn(&CommandParams) -> CreateEmbed + 'static + Send
 
 impl ButtonInfo {
-    pub fn new<S: AsRef<str> + Display>(custom_id: S, emoji: EmojiId, style: ButtonStyle) -> Self
+    pub fn new<S: AsRef<str> + Display>(custom_id: S, button: CreateButton) -> Self
     {
         Self {
             custom_id: custom_id.to_string(),
-            emoji,
-            style,
+            button,
         }
     }
 }
@@ -198,11 +210,9 @@ impl ButtonMessage {
     }
     pub fn get_buttons(&self) -> CreateActionRow {
         let mut newbuttons = Vec::new();
-        for (buttonid, buttoninfo) in self.button_index.iter() {
+        for (_, buttoninfo) in self.button_index.iter() {
             newbuttons.push(
-                CreateButton::new(buttonid)
-                    .emoji(buttoninfo.emoji)
-                    .style(buttoninfo.style)
+                buttoninfo.button.clone()
             )
         }
         CreateActionRow::Buttons(newbuttons)
@@ -210,10 +220,9 @@ impl ButtonMessage {
 
     pub fn get_disabled_buttons(&self) -> CreateActionRow {
         let mut newbuttons = Vec::new();
-        for (buttonid, buttoninfo) in self.button_index.iter() {
+        for (_, buttoninfo) in self.button_index.iter() {
             newbuttons.push(
-                CreateButton::new(buttonid)
-                    .emoji(buttoninfo.emoji)
+                buttoninfo.button.clone()
                     .disabled(true)
                     .style(ButtonStyle::Secondary)
             )

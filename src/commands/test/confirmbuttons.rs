@@ -2,7 +2,7 @@ use mathbot::appearance::embed::{base_embed, ButtonEmoji, ColorType, EmbedCtx};
 use mathbot::appearance::{ButtonInfo, ButtonMessage};
 use mathbot::command::CommandParams;
 use mathbot::{Error, Result};
-use serenity::all::{ButtonStyle, CreateEmbed, CreateMessage};
+use serenity::all::{ButtonStyle, CreateButton, CreateEmbed, CreateMessage};
 
 pub async fn test(params: CommandParams) -> Result<()> {
     let initmsg = CreateMessage::new()
@@ -16,13 +16,15 @@ pub async fn test(params: CommandParams) -> Result<()> {
         vec![
             ButtonInfo::new(
                 "confirm",
-                ButtonEmoji::Confirm.emoji(),
-                ButtonStyle::Success,
+                CreateButton::new("confirm")
+                    .emoji(ButtonEmoji::Confirm.emoji())
+                    .style(ButtonStyle::Success),
             ),
             ButtonInfo::new(
                 "decline",
-                ButtonEmoji::Decline.emoji(),
-                ButtonStyle::Danger,
+                CreateButton::new("decline")
+                    .emoji(ButtonEmoji::Decline.emoji())
+                    .style(ButtonStyle::Danger),
             ),
         ]
     );

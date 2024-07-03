@@ -3,7 +3,7 @@ mod commands;
 
 use std::env;
 use mathbot::bot::BotBuilder;
-use commands::{fun, info, math, test};
+use commands::{fun, info, math, test, user};
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
@@ -32,6 +32,7 @@ async fn main() -> color_eyre::eyre::Result<()>{
         .register(math::commands())?
         .register(fun::commands())?
         .register(test::commands())?
+        .register(user::commands())?
         .build()
         ;
 

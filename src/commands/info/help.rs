@@ -6,6 +6,7 @@ use mathbot::appearance::embed::{base_embed, ColorType, EmbedCtx};
 use mathbot::command::{Command, CommandCategory, CommandIndex, CommandParams};
 use mathbot::parser::parse_command;
 use mathbot::{send_embed, Error, Result, SendCtx};
+use itertools::Itertools;
 
 pub async fn help(params: CommandParams) -> Result<()> {
     if let Some((command, _, _, commandsequence, _)) = parse_command(&params.bot_commands, params.args.clone()){
@@ -56,13 +57,13 @@ fn help_embed<S: AsRef<str> + Display>(params: &CommandParams, command: &Command
     let prefix = &params.bot_prefix;
 
     let mut embed = base_embed(&EmbedCtx::from_params(&params), ColorType::Info)
-        .title(format!("{prefix}{commandstring} help"))
+        .title(format!("Command help  —  `{prefix}{commandstring}`"))
         .description(
             commandhelp.get_description()
                 .replace("{{command}}", format!("{prefix}{commandstring}").as_str())
             )
         .field("Usage", format!("`{}{}{}`",prefix, commandstring, commandhelp.get_usage()),true)
-        .field("Type", format!("`{}`", command.get_cmd_type()?.to_string()), true);
+        .field("Category", format!("`{}`", command.get_cmd_category().get_string()), true);
     
     if command.has_subcommands() {
         embed = embed.field(
@@ -73,7 +74,7 @@ fn help_embed<S: AsRef<str> + Display>(params: &CommandParams, command: &Command
                         .ok_or(Error::CommandIndexDoesntExist)?
                     {
                         CommandIndex::Root(_) => {return Err(Error::CommandIndexWrongType)},
-                        CommandIndex::Sub(subcommands) => subcommands.join(", "),
+                        CommandIndex::Sub(subcommands) => subcommands.into_iter().map(|s| format!("`{s}`")).join(", "),
                     },
             true,
         );

@@ -86,7 +86,7 @@ impl Bot {
             return Ok(());
         }
 
-        log(format!("{:5} - {} - {}", "[MSG]".bright_green(), &msg.author.name, &msg.content));
+        log(format!("{:5} - {} - {}", "[MSG]".bright_green(), &msg.author.name.bright_green(), &msg.content));
 
         let parsed = match self.parse_message(&msg.content) {
             //if the message is not a command, return

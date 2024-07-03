@@ -121,7 +121,7 @@ impl CommandMap {
 
     /// Get a command by its name or alias
     pub fn get_command_by_alias <S: AsRef<str> + Display>(&self, name: S) -> Option<&Box<Command>> {
-        self.get_command(self.command_map.get(&name.to_string())?)
+        self.get_command(self.command_map.get(&name.to_string().to_lowercase())?)
     }
 
     /// Registers a command by adding it to the commands field, and adding all its aliases to the command_map field

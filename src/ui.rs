@@ -216,6 +216,14 @@ impl ButtonMessage {
         CreateActionRow::Buttons(newbuttons)
     } 
 
+    pub fn set_buttons(&mut self, buttons: Vec<ButtonInfo>) {
+        let mut button_index = IndexMap::with_capacity(buttons.len());
+        for buttoninfo in buttons {
+            button_index.insert(buttoninfo.custom_id.clone(), buttoninfo);
+        }
+        self.button_index = button_index;
+    }
+
     pub fn get_disabled_buttons(&self) -> CreateActionRow {
         let mut newbuttons = Vec::new();
         for (_, buttoninfo) in self.button_index.iter() {

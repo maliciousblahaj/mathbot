@@ -109,9 +109,12 @@ impl Bot {
 
         if let Err(e) = command.run(params).await {
             let error_info = match e {
-                Error::Client(ce) => ce.get_description(),
+                Error::Client(ce) => {
+                    log(format!("{} - {ce:?}", "[ERR]".red()));
+                    ce.get_description()
+                }
                 e => {
-                    log(e);
+                    log(format!("{} - {e:?}", "[ERR]".red()));
                     ClientErrInfo::new("Internal error", "Something went wrong")},
             };
             let embed = match embedctx {

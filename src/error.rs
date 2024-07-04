@@ -77,6 +77,7 @@ pub enum ClientError {
     
     // -- User
     AccountCreateAccountAlreadyExists,
+    FailedToCreateAccount(Box<Error>),
     
     // -- Currency
     ItemInfoArgumentsNotSpecified,
@@ -117,6 +118,7 @@ impl ClientError {
         match self {
             // -- User
             Self::AccountCreateAccountAlreadyExists => ClientErrInfo::new("Account already exists", "You already have a MathBot©™ account"),
+            Self::FailedToCreateAccount(_) => ClientErrInfo::new("Account creation failed", "An internal error happened"),
             // -- Currency
             Self::ItemInfoArgumentsNotSpecified => ClientErrInfo::new("Item not specified", "This command requires an item name as an argument"),
             Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),

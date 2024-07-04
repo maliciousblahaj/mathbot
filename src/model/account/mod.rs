@@ -50,7 +50,7 @@ pub struct Slot {
 
 
 #[allow(non_camel_case_types)]
-#[derive(strum_macros::AsRefStr, Clone)]
+#[derive(strum_macros::AsRefStr, Clone, Debug)]
 pub enum AccountQueryKey{
     id(i64),
     user_id(i64),
@@ -58,7 +58,7 @@ pub enum AccountQueryKey{
     username_incomplete(String),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Account {
     pub id: i64,
     pub user_id: i64,

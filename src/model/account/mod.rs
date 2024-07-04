@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
-use crate::{account_query_by_key, model::ModelController, Error, Result};
+use crate::{account_query_by_key, get_current_timestamp_secs, model::ModelController, Error, Result};
 
 #[macro_use]
 pub mod macros;
@@ -40,6 +40,17 @@ impl AccountController{
             .await
             .map_err(|e| Error::FailedToFetchAccountSlots(e))
     }
+
+    pub async fn delete_account(&mut self) -> Result<()> {
+        let AccountQueryKey::id(id) = &self.key else {return Err(Error::DeletedAccountBeforeFetchingAccount);};
+        sqlx::query!(
+            "DELETE FROM Accounts WHERE id=?", id
+        )
+            .execute(&self.mc.lock().await.database)
+            .await
+            .map_err(|e| Error::FailedToDeleteAccount(e))?;
+        Ok(())
+    }
 }
 
 pub struct Slot {
@@ -62,10 +73,10 @@ pub enum AccountQueryKey{
 pub struct Account {
     pub id: i64,
     pub user_id: i64,
-    pub created: i64, //-62167222408 for year 0
+    pub created: i64, //-62167222408 for year 0, //561769200 for 1987
     pub balance: f64,
     pub smps_solved: i64,
-    pub is_banned: i64,
+    pub banned: i64,
     pub mine_slots: i64,
     pub previous_claim: i64,
     pub awaiting_claim: i64,
@@ -78,9 +89,9 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn is_banned(&self) -> bool {
-        if self.is_banned == 0 {false}
-            else {true}
+    pub fn is_banned(&self) -> Result<bool> {
+        if self.banned < get_current_timestamp_secs()? as i64 {Ok(false)}
+            else {Ok(true)}
     }
 
     pub fn is_admin(&self) -> bool {

@@ -33,7 +33,22 @@ pub async fn create(params: CommandParams) -> Result<()> {
             ),
         ]
     );
-    if let Some(id) = message.send().await?.run_interaction(20).await? {
+    let message = message.send().await?;
+    message.set_buttons(vec![
+        ButtonInfo::new(
+            "accept",
+            CreateButton::new("accept")
+                .label("Accept")
+                .style(ButtonStyle::Primary)
+        ),
+        ButtonInfo::new(
+            "decline",
+            CreateButton::new("decline")
+                .label("Decline")
+                .style(ButtonStyle::Secondary)
+        ),
+    ]);
+    if let Some(id) = message.run_interaction(20).await? {
         (&params).state.get_model_controller().lock().await
             .create_account(
                 (&params).msg.author.id.into(), 
@@ -46,20 +61,6 @@ pub async fn create(params: CommandParams) -> Result<()> {
                 base_embed(&EmbedCtx::from_params(&params), ColorType::Success).title("Success").description("Successfully created your account."),
             _ => {return Err(Error::InvalidInteractionId)},
         };
-        message.set_buttons(vec![
-            ButtonInfo::new(
-                "accept",
-                CreateButton::new("accept")
-                    .label("Accept")
-                    .style(ButtonStyle::Primary)
-            ),
-            ButtonInfo::new(
-                "decline",
-                CreateButton::new("decline")
-                    .label("Decline")
-                    .style(ButtonStyle::Secondary)
-            ),
-        ]);
         message.edit_message_disabled(embed).await?;
     }
 

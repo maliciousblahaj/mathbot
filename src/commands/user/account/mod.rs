@@ -9,9 +9,10 @@ use serenity::all::{ButtonStyle, Color, CreateButton, CreateEmbed, CreateMessage
 use serenity::futures::TryFutureExt;
 
 mod create;
+mod delete;
 
 async fn account(params: CommandParams) -> Result<()> {
-    let Some(account) = &params.account else {return Err(Error::Client(ClientError::AccountRequired(params.bot_prefix)));};
+    let account = params.require_account()?;
 
     send_embed(profile_embed(&EmbedCtx::from_params(&params), account), &SendCtx::from_params(&params)).await?;
     Ok(())
@@ -58,6 +59,12 @@ pub fn command() -> Result<Command> {
                     vec_of_strings!("create"),
                     category.clone(),
                     CommandHelp::new("Create your own account if you don't already have one", ""),
+                ),
+                Command::new(
+                    delete::delete,
+                    vec_of_strings!("delete"),
+                    category.clone(),
+                    CommandHelp::new("Delete your MathBot©™ account (NOT RECOMMENDED)", ""),
                 ),
             ]
         )?

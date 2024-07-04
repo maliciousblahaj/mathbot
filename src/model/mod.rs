@@ -24,4 +24,8 @@ impl ModelController {
         Ok(())
     }
 
+    pub fn get_database(&self) -> &sqlx::SqlitePool {
+        &self.database
+    }
+
 }

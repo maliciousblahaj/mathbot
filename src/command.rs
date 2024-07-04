@@ -1,10 +1,9 @@
 use core::fmt;
 use std::{collections::HashMap, fmt::Display, future::Future, sync::Arc};
-use crate::{bot::GlobalState, model::account::Account, Error, Result};
+use crate::{bot::GlobalState, error::ClientError, model::account::Account, ui::embed::EmbedCtx, Error, Result};
 use indexmap::IndexMap;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
-use tokio::sync::Mutex;
 
 /// The category a root command can have.
 /// 
@@ -149,13 +148,13 @@ impl CommandMap {
     }
 }
 
-type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + 'static + Send>;
+type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + 'static + Send + Sync>;
 
 /// A Command's name is the 0th element of the aliases vector
 /// Cloning a command makes its handle value None, making its run method return error
 pub struct Command
 {
-    handle: Option<Arc<Mutex<CommandHandler>>>,
+    handle: Option<Arc<CommandHandler>>,
     aliases: Vec<String>,
     cmd_type: Option<CommandType>,
     cmd_category: CommandCategory,
@@ -165,18 +164,19 @@ pub struct Command
 
 impl Command
 {
-    pub fn new<T> (
-        handle: fn(CommandParams) -> T, 
+    pub fn new<F, T> (
+        handle: F,
         aliases: Vec<String>, 
         cmd_category: CommandCategory,
         help: CommandHelp,
     ) -> Self
     where 
         T: Future<Output = Result<()>> + 'static + Send,
+        F: Fn(CommandParams) -> T + 'static + Send + Sync,
     {
         let handle: CommandHandler = Box::new(move |params| {Box::pin(handle(params))});
         Self {
-            handle: Some(Arc::new(Mutex::new(handle))),
+            handle: Some(Arc::new(handle)),
             aliases,
             cmd_type: None,
             cmd_category,
@@ -193,10 +193,9 @@ impl Command
         //all this boilerplate is just because Bot needs to implement Sync
         let fun = self.handle
             .as_ref()
-            .ok_or(Error::NoCommandHandle)?
-            .lock().await;
+            .ok_or(Error::NoCommandHandle)?;
 
-        (fun)(params).await
+        fun(params).await
     }
 
     pub fn get_aliases(&self) -> &Vec<String> {
@@ -311,6 +310,18 @@ impl CommandParams {
             bot_prefix,
             bot_commands,
         }
+    }
+
+    pub fn get_embed_ctx(&self) -> EmbedCtx {
+        match &self.account {
+            Some(acc) => EmbedCtx::new(acc.username.clone(), acc.avatar_url.clone()),
+            None => EmbedCtx::new(self.msg.author.name.to_string(), self.msg.author.avatar_url().unwrap_or(self.msg.author.default_avatar_url()))
+        }
+    }
+
+    pub fn require_account(&self) -> Result<&Account> {
+        let Some(account) = &self.account else {return Err(Error::Client(ClientError::AccountRequired(self.bot_prefix.clone())));};
+        Ok(account)
     }
 }
 

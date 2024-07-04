@@ -39,6 +39,7 @@ pub enum Error {
     FailedToDeferButtonMessage(serenity::Error),
     InvalidInteractionId,
     FetchedSlotsBeforeFetchingAccount,
+    DeletedAccountBeforeFetchingAccount,
     ProcessMessageAccountIdConversionFailed(Infallible),
 
     // -- Database errors
@@ -50,6 +51,8 @@ pub enum Error {
     CannotGetAccountQueryItemAsI64,
     CannotGetAccountQueryItemAsString,
     FailedToCreateAccount(sqlx::Error),
+    FailedToDeleteAccount(sqlx::Error),
+    FailedToIncrementSmpsSolved(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),
@@ -78,6 +81,7 @@ pub enum ClientError {
     // -- User
     AccountCreateAccountAlreadyExists,
     FailedToCreateAccount(Box<Error>),
+    FailedToDeleteAccount(Box<Error>),
     
     // -- Currency
     ItemInfoArgumentsNotSpecified,
@@ -85,10 +89,14 @@ pub enum ClientError {
     
     // -- Fun
     NoSayContent,
+    ChooseNoArgsSpecified,
+    RockPaperScissorsNothingSpecified,
+    RockPaperScissorsInvalidInput(String),
 
     // -- Math
     InvalidSolveExpression(String),
     NoSolveExpression,
+    AnswerNoProblemInChannel(String),
 
     // -- Misc
     AccountRequired(String),
@@ -119,14 +127,19 @@ impl ClientError {
             // -- User
             Self::AccountCreateAccountAlreadyExists => ClientErrInfo::new("Account already exists", "You already have a MathBot©™ account"),
             Self::FailedToCreateAccount(_) => ClientErrInfo::new("Account creation failed", "An internal error happened"),
+            Self::FailedToDeleteAccount(_) => ClientErrInfo::new("Account deletion failed", "An internal error happened"),
             // -- Currency
             Self::ItemInfoArgumentsNotSpecified => ClientErrInfo::new("Item not specified", "This command requires an item name as an argument"),
             Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
+            Self::ChooseNoArgsSpecified => ClientErrInfo::new("Nothing to choose", "You need to specify at least two things to choose between"),
+            Self::RockPaperScissorsNothingSpecified => ClientErrInfo::new("Invalid input", "You must specify your choice as an argument"),
+            Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("{i} is not a valid choice. Valid choices are 'rock', 'r', 'paper', 'p', 'scissors', 's'.").as_str()),
             // -- Math
             Self::NoSolveExpression => ClientErrInfo::new("No expression specified", "You have to specify an expression to solve"),
             Self::InvalidSolveExpression(expr) => ClientErrInfo::new("Invalid expression", format!("`{expr}` is not a valid expression!").as_str()),
+            Self::AnswerNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to answer", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`").as_str()),
             // -- Misc
             Self::AccountRequired(prefix) => ClientErrInfo::new("🔒Account required", format!("To gain access to this command you must first create a MathBot©™ account\n\nTo create a MathBot©™ account, simply execute `{prefix}account create`").as_str()),
         }

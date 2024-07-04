@@ -3,7 +3,7 @@ macro_rules! account_query_by_key_user_id {
     ($keyvalue:expr) => {
         sqlx::query_as!(
             Account,
-            "SELECT id, user_id, created, balance, smps_solved, is_banned, mine_slots, previous_claim, 
+            "SELECT id, user_id, created, balance, smps_solved, banned, mine_slots, previous_claim, 
             awaiting_claim, username, user_bio, pronouns, avatar_url, next_username_update, is_admin 
             FROM Accounts WHERE user_id=?",  $keyvalue
         )
@@ -15,7 +15,7 @@ macro_rules! account_query_by_key_id {
     ($keyvalue:expr) => {
         sqlx::query_as!(
             Account,
-            "SELECT id, user_id, created, balance, smps_solved, is_banned, mine_slots, previous_claim, 
+            "SELECT id, user_id, created, balance, smps_solved, banned, mine_slots, previous_claim, 
             awaiting_claim, username, user_bio, pronouns, avatar_url, next_username_update, is_admin 
             FROM Accounts WHERE id=?",  $keyvalue
         )
@@ -27,7 +27,7 @@ macro_rules! account_query_by_key_username {
     ($keyvalue:expr) => {
         sqlx::query_as!(
             Account,
-            "SELECT id, user_id, created, balance, smps_solved, is_banned, mine_slots, previous_claim, 
+            "SELECT id, user_id, created, balance, smps_solved, banned, mine_slots, previous_claim, 
             awaiting_claim, username, user_bio, pronouns, avatar_url, next_username_update, is_admin 
             FROM Accounts WHERE username=?",  $keyvalue
         )
@@ -39,7 +39,7 @@ macro_rules! account_query_by_key_username_incomplete {
     ($keyvalue:expr) => {
         sqlx::query_as!(
             Account,
-            "SELECT id, user_id, created, balance, smps_solved, is_banned, mine_slots, previous_claim, 
+            "SELECT id, user_id, created, balance, smps_solved, banned, mine_slots, previous_claim, 
             awaiting_claim, username, user_bio, pronouns, avatar_url, next_username_update, is_admin 
             FROM Accounts WHERE username LIKE ?", $keyvalue
         )

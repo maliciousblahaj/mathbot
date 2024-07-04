@@ -4,6 +4,7 @@ use color_eyre::owo_colors::OwoColorize;
 use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
 use tokio::sync::Mutex;
+use std::collections::HashMap;
 
 use crate::command::{CommandMap, CommandParams, CommandType};
 use crate::logging::log;
@@ -131,6 +132,7 @@ impl Bot {
 #[derive(Clone)]
 pub struct GlobalState {
     start_time: u64,
+    smp_answers: Arc<Mutex<HashMap<u64, i64>>>,
     mc: Arc<Mutex<ModelController>>,
 }
 
@@ -139,6 +141,7 @@ impl GlobalState {
         Ok(
             Self {
                 start_time: get_current_timestamp_secs()?,
+                smp_answers: Arc::new(Mutex::new(HashMap::new())),
                 mc: Arc::new(Mutex::new(ModelController::new(database))),
             }
         )
@@ -146,6 +149,10 @@ impl GlobalState {
 
     pub fn get_start_time(&self) -> &u64 {
         &self.start_time
+    }
+
+    pub fn get_smp_answers(&self) -> &Arc<Mutex<HashMap<u64, i64>>> {
+        &self.smp_answers
     }
 
     pub fn get_model_controller(&self) -> &Arc<Mutex<ModelController>> {

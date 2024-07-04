@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serenity::all::CreateEmbed;
 
-use mathbot::ui::embed::{base_embed, ColorType, EmbedCtx};
+use mathbot::ui::embed::{base_embed, ColorType};
 use mathbot::command::{Command, CommandCategory, CommandIndex, CommandParams};
 use mathbot::parser::parse_command;
 use mathbot::{send_embed, Error, Result, SendCtx};
@@ -20,7 +20,7 @@ pub async fn help(params: CommandParams) -> Result<()> {
 
     let prefix = &params.bot_prefix;
 
-    let mut embed = base_embed(&EmbedCtx::from_params(&params), ColorType::Info)
+    let mut embed = base_embed(&params.get_embed_ctx(), ColorType::Info)
         .title("Help menu")
         .description(format!("Here are all of the base commands. To run the commands, specify `{prefix}` before them. Write `{prefix}help {{command}}` to learn more about the commands"));
 
@@ -61,7 +61,7 @@ fn help_embed<S: AsRef<str> + Display>(params: &CommandParams, command: &Command
     let commandhelp = command.get_help();
     let prefix = &params.bot_prefix;
 
-    let mut embed = base_embed(&EmbedCtx::from_params(&params), ColorType::Info)
+    let mut embed = base_embed(&params.get_embed_ctx(), ColorType::Info)
         .title(format!("Command help  —  `{prefix}{commandstring}`"))
         .description(
             commandhelp.get_description()

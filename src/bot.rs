@@ -1,5 +1,5 @@
 use std::{fmt::Display, sync::Arc};
-use crate::{error::ClientErrInfo, get_current_timestamp_secs, model::{account::AccountController, ModelController}, send_embed, ui::embed::{error_embed, error_embed_no_author, EmbedCtx}, SendCtx};
+use crate::{error::ClientErrInfo, get_current_timestamp_secs, model::{account::AccountController, ModelController}, send_embed, ui::embed::{error_embed, error_embed_no_author}, SendCtx};
 use color_eyre::owo_colors::OwoColorize;
 use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
@@ -105,7 +105,7 @@ impl Bot {
 
         let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, authoraccount.clone(), ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
-        let embedctx = authoraccount.map(|_| EmbedCtx::from_params(&params));
+        let embedctx = authoraccount.map(|_| params.get_embed_ctx());
         let sendctx = SendCtx::from_params(&params);
 
         if let Err(e) = command.run(params).await {

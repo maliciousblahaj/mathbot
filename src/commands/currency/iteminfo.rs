@@ -2,6 +2,8 @@ use mathbot::{command::CommandParams, error::ClientError, model::item::{Item, It
 use serenity::all::{CreateEmbed, EmbedField};
 
 pub async fn iteminfo(params: CommandParams) -> Result<()> {
+    let account = params.require_account()?;
+
     let item = params.args.get(0)
         .ok_or(Error::Client(ClientError::ItemInfoArgumentsNotSpecified))?;
 
@@ -13,7 +15,7 @@ pub async fn iteminfo(params: CommandParams) -> Result<()> {
     let item = itemc.fetch_item().await
         .map_err(|e| Error::Client(ClientError::ItemInfoItemNotFound(item.to_string(), Box::new(e))))?;
     
-    send_embed(item_embed(&EmbedCtx::from_params(&params), item), &SendCtx::from_params(&params)).await?;
+    send_embed(item_embed(&EmbedCtx::from_account(account), item), &SendCtx::from_params(&params)).await?;
 
     Ok(())
 }

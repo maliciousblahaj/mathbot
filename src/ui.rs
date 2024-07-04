@@ -11,7 +11,8 @@ pub mod embed {
     use chrono::{Datelike, Local};
     use rand::seq::SliceRandom;
     use serenity::all::{Colour, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, EmojiId, Timestamp};
-    use crate::{command::CommandParams, error::ClientErrInfo};
+    use crate::{error::ClientErrInfo, model::account::Account};
+    
 
     pub const FOOTER_MESSAGES: &'static [&'static str] = &[
             "Did you know that 99% of gambling addicts quit right before they win a zillion MathCoins?",
@@ -109,10 +110,10 @@ pub mod embed {
             Self {author_name, author_avatar_url}
         }
 
-        pub fn from_params(params: &CommandParams) -> Self {
+        pub fn from_account(account: &Account) -> Self {
             Self {
-                author_name: params.msg.author.name.to_string(),
-                author_avatar_url: params.msg.author.avatar_url().unwrap_or(params.msg.author.default_avatar_url())
+                author_name: account.username.clone(),
+                author_avatar_url: account.avatar_url.clone()
             }
         }
     }

@@ -6,7 +6,7 @@ use serenity::all::{ButtonStyle, CreateButton, CreateEmbed, CreateMessage};
 
 pub async fn test(params: CommandParams) -> Result<()> {
     let initmsg = CreateMessage::new()
-        .embed(confirm_embed(&EmbedCtx::from_params(&params))
+        .embed(confirm_embed(&params.get_embed_ctx())
             .title("Confirm Test")
             .description("Are you sure you want to confirm?")
     );
@@ -31,9 +31,9 @@ pub async fn test(params: CommandParams) -> Result<()> {
     if let Some(id) = message.send().await?.run_interaction(20).await? {
         let embed = match id.as_str() {
             "confirm" => 
-                base_embed(&EmbedCtx::from_params(&params), ColorType::Success).title("Confirmed!"),
+                base_embed(&params.get_embed_ctx(), ColorType::Success).title("Confirmed!"),
             "decline" => 
-                base_embed(&EmbedCtx::from_params(&params), ColorType::Failure).title("Declined!"),
+                base_embed(&params.get_embed_ctx(), ColorType::Failure).title("Declined!"),
             _ => {return Err(Error::InvalidInteractionId)},
         };
         message.edit_message_disabled(embed).await?;

@@ -14,7 +14,7 @@ mod delete;
 async fn account(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
 
-    send_embed(profile_embed(&EmbedCtx::from_params(&params), account), &SendCtx::from_params(&params)).await?;
+    send_embed(profile_embed(&EmbedCtx::from_account(account), account), &SendCtx::from_params(&params)).await?;
     Ok(())
 }
 

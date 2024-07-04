@@ -4,7 +4,7 @@ use serenity::all::{ButtonStyle, CreateButton, CreateMessage};
 pub async fn delete(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
     let initmsg = CreateMessage::new()
-        .embed(base_embed(&EmbedCtx::from_params(&params), ColorType::Failure)
+        .embed(base_embed(&EmbedCtx::from_account(account), ColorType::Failure)
             .title("Account deletion")
             .description(format!("<@{}>, Are you sure you want to delete your account?", account.user_id))
         );
@@ -36,9 +36,9 @@ pub async fn delete(params: CommandParams) -> Result<()> {
                         .delete_account()
                         .await
                         .map_err(|e| Error::Client(ClientError::FailedToDeleteAccount(Box::new(e))))?;
-                    base_embed(&EmbedCtx::from_params(&params), ColorType::Failure).description("Successfully deleted your account.")
+                    base_embed(&EmbedCtx::from_account(account), ColorType::Failure).description("Successfully deleted your account.")
                 },
-            "no" => base_embed(&EmbedCtx::from_params(&params), ColorType::Success).description("Account not deleted."), 
+            "no" => base_embed(&EmbedCtx::from_account(account), ColorType::Success).description("Account not deleted."), 
             _ => {return Err(Error::InvalidInteractionId)},
         };
 

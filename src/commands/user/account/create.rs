@@ -58,7 +58,7 @@ pub async fn create(params: CommandParams) -> Result<()> {
 
         let embed = match id.as_str() {
             "accept" | "fakeaccept" => 
-                base_embed(&EmbedCtx::from_params(&params), ColorType::Success).title("Success").description("Successfully created your account."),
+                base_embed(&params.get_embed_ctx(), ColorType::Success).title("Success").description("Successfully created your account."),
             _ => {return Err(Error::InvalidInteractionId)},
         };
         message.edit_message_disabled(embed).await?;

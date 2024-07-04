@@ -6,6 +6,6 @@ pub async fn admin(params: CommandParams) -> Result<()> {
         _ => {return Ok(());},
     };
 
-    send_embed(base_embed(&EmbedCtx::from_params(&params), ColorType::Admin).title("Admin panel").description("unfinished"), &SendCtx::from_params(&params)).await?;
+    send_embed(base_embed(&EmbedCtx::from_account(account), ColorType::Admin).title("Admin panel").description("unfinished"), &SendCtx::from_params(&params)).await?;
     Ok(())
 }

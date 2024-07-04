@@ -1,5 +1,5 @@
 use chrono::TimeDelta;
-use mathbot::{ui::embed::{base_embed, ColorType, EmbedCtx}, command::CommandParams, get_current_timestamp_secs, SendCtx};
+use mathbot::{ui::embed::{base_embed, ColorType}, command::CommandParams, get_current_timestamp_secs, SendCtx};
 use mathbot::{send_embed, Result, BOT_VERSION};
 
 pub async fn botinfo(params: CommandParams) -> Result<()> {
@@ -9,7 +9,7 @@ pub async fn botinfo(params: CommandParams) -> Result<()> {
 
     let timestr = get_timedelta_string(TimeDelta::seconds((get_current_timestamp_secs()? - starttime) as i64));
 
-    let embed = base_embed(&EmbedCtx::from_params(&params), ColorType::Settings)
+    let embed = base_embed(&params.get_embed_ctx(), ColorType::Settings)
         .title("Bot Information")
         .field("Bot Version", format!("`{BOT_VERSION}`"), false)
         .field("Bot Uptime", timestr, false)

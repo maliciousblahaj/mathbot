@@ -150,6 +150,12 @@ pub mod embed {
             .description(clienterrinfo.get_description())
     }
 
+    pub fn error_embed_no_author(clienterrinfo: ClientErrInfo) -> CreateEmbed {
+        base_embed_no_author(ColorType::Failure)
+            .title(clienterrinfo.get_title())
+            .description(clienterrinfo.get_description())
+    }
+
     
 }
 

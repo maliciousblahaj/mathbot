@@ -1,6 +1,6 @@
 use core::fmt;
 use std::{collections::HashMap, fmt::Display, future::Future, sync::Arc};
-use crate::{bot::GlobalState, Error, Result};
+use crate::{bot::GlobalState, model::account::Account, Error, Result};
 use indexmap::IndexMap;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
@@ -290,6 +290,7 @@ pub struct CommandParams{
     pub args: Vec<String>,
     pub args_str: String,
     pub aliassequence: Vec<String>,
+    pub account: Option<Account>,
     pub ctx: Context, 
     pub msg: Message,
     pub state: GlobalState,
@@ -298,11 +299,12 @@ pub struct CommandParams{
 }
 
 impl CommandParams {
-    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, ctx: Context, msg: Message, state: GlobalState, bot_prefix: String, bot_commands: CommandMap) -> Self {
+    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, account: Option<Account>, ctx: Context, msg: Message, state: GlobalState, bot_prefix: String, bot_commands: CommandMap) -> Self {
         Self {
             args,
             args_str,
             aliassequence,
+            account,
             ctx,
             msg,
             state,

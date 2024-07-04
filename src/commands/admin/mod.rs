@@ -1,13 +1,15 @@
 use mathbot::{command::{Command, CommandCategory, CommandHelp, CommandType}, vec_of_strings};
 
+mod admin;
+
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Admin;
     vec![
         Command::new(
-            super::test::test::test,
-            vec_of_strings!("test"),
+            admin::admin,
+            vec_of_strings!("admin"),
             category.clone(),
-            CommandHelp::new("desc", "usage"),
+            CommandHelp::new("Bully MathBot users by modifying their data", ""),
         ),
     ]
 }

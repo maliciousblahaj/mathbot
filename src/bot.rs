@@ -1,5 +1,5 @@
 use std::{fmt::Display, sync::Arc};
-use crate::{ui::embed::{error_embed, EmbedCtx}, error::ClientErrInfo, get_current_timestamp_secs, model::ModelController, send_embed, SendCtx};
+use crate::{error::ClientErrInfo, get_current_timestamp_secs, model::{account::AccountController, ModelController}, send_embed, ui::embed::{error_embed, error_embed_no_author, EmbedCtx}, SendCtx};
 use color_eyre::owo_colors::OwoColorize;
 use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
@@ -93,9 +93,18 @@ impl Bot {
             //if the message is not a command, return
             else {return Ok(());};
 
-        let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone());
+
+        let authoraccount = {
+            let mut accountcontroller = AccountController::new(
+                self.get_state().get_model_controller(), crate::model::account::AccountQueryKey::user_id(msg.author.id.try_into()
+                    .map_err(|e| Error::ProcessMessageAccountIdConversionFailed(e))?)
+            );
+            accountcontroller.fetch_account().await.ok()
+        };
+
+        let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, authoraccount.clone(), ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
-        let embedctx = EmbedCtx::from_params(&params);
+        let embedctx = authoraccount.map(|_| EmbedCtx::from_params(&params));
         let sendctx = SendCtx::from_params(&params);
 
         if let Err(e) = command.run(params).await {
@@ -105,7 +114,11 @@ impl Bot {
                     log(e);
                     ClientErrInfo::new("Internal error", "Something went wrong")},
             };
-            send_embed(error_embed(&embedctx, error_info), &sendctx).await?;
+            let embed = match embedctx {
+                Some(embedctx) => error_embed(&embedctx, error_info),
+                None => error_embed_no_author(error_info),
+            };
+            send_embed(embed, &sendctx).await?;
         }
         Ok(())
     }
@@ -115,7 +128,6 @@ impl Bot {
 #[derive(Clone)]
 pub struct GlobalState {
     start_time: u64,
-    #[allow(unused)]
     mc: Arc<Mutex<ModelController>>,
 }
 
@@ -131,6 +143,10 @@ impl GlobalState {
 
     pub fn get_start_time(&self) -> &u64 {
         &self.start_time
+    }
+
+    pub fn get_model_controller(&self) -> &Arc<Mutex<ModelController>> {
+        &self.mc
     }
 }
 

@@ -1,3 +1,4 @@
+use mathbot::error::ClientError;
 use mathbot::ui::embed::{base_embed, base_embed_no_author, EmbedCtx};
 use mathbot::ui::{ButtonInfo, ButtonMessage};
 use mathbot::command::CommandParams;
@@ -6,10 +7,14 @@ use mathbot::ui::embed::ColorType;
 use serenity::all::{ButtonStyle, Color, CreateButton, CreateEmbed, CreateMessage};
 
 pub async fn account(params: CommandParams) -> Result<()> {
+    let Some(account) = params.account else {return Err(Error::Client(ClientError::AccountRequired(params.bot_prefix)));};
+
     Ok(())
 }
 
 pub async fn account_create(params: CommandParams) -> Result<()> {
+    if params.account.is_some() {return Err(Error::Client(ClientError::AccountCreateAccountAlreadyExists));}
+
     let initmsg = CreateMessage::new()
         .embed(
             base_embed_no_author(ColorType::Info)

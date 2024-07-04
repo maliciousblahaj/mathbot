@@ -22,7 +22,7 @@ pub async fn help(params: CommandParams) -> Result<()> {
 
     let mut embed = base_embed(&EmbedCtx::from_params(&params), ColorType::Info)
         .title("Help menu")
-        .description(format!("Here are all of the base commands. To run the commands specify `{prefix}` before them. Write `{prefix}help {{command}}` to learn more about the commands"));
+        .description(format!("Here are all of the base commands. To run the commands, specify `{prefix}` before them. Write `{prefix}help {{command}}` to learn more about the commands"));
 
     for (category, cmdvec) in 
         match params.bot_commands.get_command_index().ok_or(Error::CommandIndexDoesntExist)? {
@@ -32,7 +32,12 @@ pub async fn help(params: CommandParams) -> Result<()> {
     {
         match category {
             CommandCategory::Test => {continue;},
-            CommandCategory::Admin => {}, //TODO: do an user check once the database is configured
+            CommandCategory::Admin => {
+                match &params.account {
+                    Some(acc) if acc.is_admin() => (),
+                    _ => {continue;}
+                }
+            },
             _ => (),
         }
         let mut s = String::new();

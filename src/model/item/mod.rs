@@ -35,6 +35,17 @@ pub enum ItemType {
     TestItem,
 }
 
+impl ItemType {
+    pub fn get_string(&self) -> &str {
+        match self {
+            Self::Token => "Token",
+            Self::GraphicsCard => "Graphics card",
+            Self::AntiVirus => "Antivirus",
+            Self::TestItem => "Test item",
+        }
+    }
+}
+
 //PANICS!! Fix this
 impl Into<ItemType> for String {
     fn into(self) -> ItemType {

@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{convert::Infallible, error, fmt};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -39,6 +39,7 @@ pub enum Error {
     FailedToDeferButtonMessage(serenity::Error),
     InvalidInteractionId,
     FetchedSlotsBeforeFetchingAccount,
+    ProcessMessageAccountIdConversionFailed(Infallible),
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),
@@ -75,8 +76,11 @@ pub enum ClientError {
     // -- Info
     
     // -- User
+    AccountCreateAccountAlreadyExists,
     
     // -- Currency
+    ItemInfoArgumentsNotSpecified,
+    ItemInfoItemNotFound(String, Box<Error>),
     
     // -- Fun
     NoSayContent,
@@ -84,6 +88,9 @@ pub enum ClientError {
     // -- Math
     InvalidSolveExpression(String),
     NoSolveExpression,
+
+    // -- Misc
+    AccountRequired(String),
 }
 
 pub struct ClientErrInfo {
@@ -108,11 +115,18 @@ impl ClientErrInfo {
 impl ClientError {
     pub fn get_description(&self) -> ClientErrInfo {
         match self {
+            // -- User
+            Self::AccountCreateAccountAlreadyExists => ClientErrInfo::new("Account already exists", "You already have a MathBot©™ account"),
+            // -- Currency
+            Self::ItemInfoArgumentsNotSpecified => ClientErrInfo::new("Item not specified", "This command requires an item name as an argument"),
+            Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
             // -- Math
             Self::NoSolveExpression => ClientErrInfo::new("No expression specified", "You have to specify an expression to solve"),
             Self::InvalidSolveExpression(expr) => ClientErrInfo::new("Invalid expression", format!("`{expr}` is not a valid expression!").as_str()),
+            // -- Misc
+            Self::AccountRequired(prefix) => ClientErrInfo::new("🔒Account required", format!("To gain access to this command you must first create a MathBot©™ account\n\nTo create a MathBot©™ account, simply execute `{prefix}account create`").as_str()),
         }
     }
 }

@@ -1,4 +1,4 @@
-CREATE TABLE "Accounts" (
+CREATE TABLE IF NOT EXISTS "Accounts" (
 	"id"	        INTEGER PRIMARY KEY NOT NULL, 
 	"user_id"	    INTEGER NOT NULL UNIQUE, --discord userid
 	"created"	    INTEGER NOT NULL, --unix timestamp
@@ -16,7 +16,7 @@ CREATE TABLE "Accounts" (
 	"is_admin"		INTEGER NOT NULL DEFAULT 0 --bool
 );
 
-CREATE TABLE "Inventory" (
+CREATE TABLE IF NOT EXISTS "Inventory" (
 	"account_id"	INTEGER NOT NULL,
 	"item_id"		INTEGER NOT NULL,
 	"count"			INTEGER NOT NULL DEFAULT 0,
@@ -24,7 +24,7 @@ CREATE TABLE "Inventory" (
 	FOREIGN KEY("item_id") REFERENCES "Items"("id")
 );
 
-CREATE TABLE "Items" (
+CREATE TABLE IF NOT EXISTS "Items" (
         "id"    		INTEGER PRIMARY KEY NOT NULL,
         "name_id"   	TEXT NOT NULL UNIQUE,
         "emoji_id"  	TEXT, --optional
@@ -37,7 +37,7 @@ CREATE TABLE "Items" (
         "mps"   		REAL --optional
 );
 
-CREATE TABLE "Slots" (
+CREATE TABLE IF NOT EXISTS "Slots" (
 	"id"			INTEGER PRIMARY KEY NOT NULL,
 	"account_id"	INTEGER NOT NULL,
 	"item_id"		INTEGER NOT NULL,

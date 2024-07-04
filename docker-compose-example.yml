@@ -1,0 +1,11 @@
+services:
+  mathbot:
+    build:
+      context: .
+    environment:
+      - DATABASE_URL=sqlite:./db/mathbot.db
+      #DISCORD_TOKEN
+      - BOT_PREFIX="!"
+    volumes:
+      - ./db:/mathbot/db
+    restart: unless-stopped

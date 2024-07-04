@@ -1,33 +1,35 @@
 mod commands;
 
 
-use std::env;
+use std::{env, str::FromStr};
 use mathbot::bot::BotBuilder;
 use commands::{fun, info, math, test, user};
 use serenity::{all::GatewayIntents, Client};
 use dotenv::dotenv;
 
-const DATABASE_PATH: &'static str = "db/mathbot.db";
-const BOT_PREFIX: &'static str = "dev ";
-const DISCORD_TOKEN_ENV_VAR_NAME: &'static str = "DEV_TOKEN";
+//const BOT_PREFIX: &'static str = "dev ";
+//const DISCORD_TOKEN_ENV_VAR_NAME: &'static str = "DEV_TOKEN";
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()>{
     color_eyre::install().expect("Failed to install color_eyre");
     dotenv().expect("Failed to load environment variables");
 
+    let database_url = env::var("DATABASE_URL")?;
+    let bot_prefix = env::var("BOT_PREFIX")?;
+    let token = env::var("DISCORD_TOKEN").expect("Invalid environment token");
+
     let database = sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(5) //TODO: Look into these settings more instead of just copy pasting
         .connect_with(
-            sqlx::sqlite::SqliteConnectOptions::new()
-                .filename(DATABASE_PATH)
+            sqlx::sqlite::SqliteConnectOptions::from_str(database_url.as_str())?
                 .create_if_missing(true),
         )
         .await?;
 
     sqlx::migrate!("./migrations").run(&database).await?;
 
-    let bot = BotBuilder::new(BOT_PREFIX, database)?
+    let bot = BotBuilder::new(bot_prefix, database)?
         .register(info::commands())?
         .register(math::commands())?
         .register(fun::commands())?
@@ -35,8 +37,6 @@ async fn main() -> color_eyre::eyre::Result<()>{
         .register(user::commands())?
         .build()
         ;
-
-    let token = env::var(DISCORD_TOKEN_ENV_VAR_NAME).expect("Invalid environment token");
 
     let intents = GatewayIntents::GUILD_MESSAGES
     | GatewayIntents::DIRECT_MESSAGES

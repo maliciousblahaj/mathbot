@@ -108,7 +108,6 @@ impl CommandMap {
         self.commands.get(&name.to_string())
     }
 
-    #[allow(unused)]
     pub fn get_command_map(&self) -> &HashMap<String, String> {
         &self.command_map
     }
@@ -152,7 +151,6 @@ impl CommandMap {
 
 type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + 'static + Send>;
 
-//TODO: add documentation for commands (for help menu)
 /// A Command's name is the 0th element of the aliases vector
 /// Cloning a command makes its handle value None, making its run method return error
 pub struct Command

@@ -66,14 +66,7 @@ pub mod embed {
             } 
         } 
         pub fn emoji(&self) -> EmojiId {
-            match self {
-                Self::First => EmojiId::new(1128306473160691794),
-                Self::Previous => EmojiId::new(1128306474372833343),
-                Self::Next => EmojiId::new(1128306476830703758),
-                Self::Last => EmojiId::new(1128306478370009121),
-                Self::Confirm => EmojiId::new(1130571724979712072),
-                Self::Decline => EmojiId::new(1130572943836053534),
-            } 
+            EmojiId::new(self.emoji_id())
         } 
     }
 
@@ -178,7 +171,6 @@ impl ButtonInfo {
     }
 }
 
-#[allow(unused)]
 pub struct ButtonMessage {
     message: CreateMessage,
     sent_message: Option<Message>,
@@ -231,9 +223,10 @@ impl ButtonMessage {
     } 
 
     pub async fn disable_buttons(&mut self) -> Result<()> {
-        if self.sent_message.is_none() {return Err(Error::ButtonMessageNotSentYet);}
+        if self.sent_message.is_none() {return Err(Error::ButtonMessageNotSentYet);};
 
         let updated = EditMessage::new().components(vec![self.get_disabled_buttons()]);
+
         self.sent_message.as_mut().unwrap().edit(&self.params.ctx.http, updated)
             .await.map_err(|e| Error::FailedToEditMessage(e))?;
         return Ok(());
@@ -241,9 +234,10 @@ impl ButtonMessage {
 
     
     pub async fn run_interaction(&mut self, timeout: u64) -> Result<Option<String>> {
-        if self.sent_message.is_none() {return Err(Error::ButtonMessageNotSentYet);}
+        let Some(sent_message) = &self.sent_message 
+            else {return Err(Error::ButtonMessageNotSentYet);};
 
-        let interaction = match self.sent_message.as_mut().unwrap()
+        let interaction = match sent_message
             .await_component_interaction(&self.params.ctx.shard)
             .timeout(Duration::from_secs(timeout))
             .author_id(self.params.msg.author.id.clone())

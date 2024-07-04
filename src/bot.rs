@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 use crate::{ui::embed::{error_embed, EmbedCtx}, error::ClientErrInfo, get_current_timestamp_secs, model::ModelController, send_embed, SendCtx};
 use color_eyre::owo_colors::OwoColorize;
 use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
@@ -16,7 +16,7 @@ pub struct BotBuilder {
 }
 
 impl BotBuilder {
-    pub fn new(prefix: &str, database: SqlitePool) -> Result<Self> {
+    pub fn new<S: AsRef<str> + Display>(prefix: S, database: SqlitePool) -> Result<Self> {
         Ok(
         Self {
             prefix: prefix.to_string(),
@@ -88,11 +88,10 @@ impl Bot {
 
         log(format!("{:5} - {} - {}", "[MSG]".bright_green(), &msg.author.name.bright_green(), &msg.content));
 
-        let parsed = match self.parse_message(&msg.content) {
+
+        let Some(parsed) = self.parse_message(&msg.content) 
             //if the message is not a command, return
-            None => {return Ok(());},
-            Some(command) => command,
-        };
+            else {return Ok(());};
 
         let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
@@ -113,10 +112,10 @@ impl Bot {
 }
 
 
-#[allow(unused)]
 #[derive(Clone)]
 pub struct GlobalState {
     start_time: u64,
+    #[allow(unused)]
     mc: Arc<Mutex<ModelController>>,
 }
 

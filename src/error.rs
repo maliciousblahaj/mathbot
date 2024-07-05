@@ -56,6 +56,7 @@ pub enum Error {
     FailedToCreateAccount(sqlx::Error),
     FailedToDeleteAccount(sqlx::Error),
     FailedToIncrementSmpsSolved(sqlx::Error),
+    FailedToTransferMathCoins(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),
@@ -88,6 +89,11 @@ pub enum ClientError {
     
     // -- Currency
     ItemInfoItemNotFound(String, Box<Error>),
+    TransferRecieverDoesntExist,
+    TransferRecieverIsSelf,
+    TransferNonIntegerAmount,
+    TransferTooSmallAmount,
+    TransferInsufficientFunds,
     
     // -- Fun
     NoSayContent,
@@ -96,6 +102,7 @@ pub enum ClientError {
     // -- Math
     InvalidSolveExpression(String),
     AnswerNoProblemInChannel(String),
+    SolutionNoProblemInChannel(String),
 
     // -- Misc
     AccountRequired(String),
@@ -129,12 +136,18 @@ impl ClientError {
             Self::FailedToDeleteAccount(_) => ClientErrInfo::new("Account deletion failed", "An internal error happened"),
             // -- Currency
             Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),
+            Self::TransferRecieverDoesntExist => ClientErrInfo::new("Invalid reciever", "There is no MathBot©™ account connected to the user you specified"),
+            Self::TransferRecieverIsSelf => ClientErrInfo::new("Invalid reciever", "Did you just think you could fool the admins by transferring to yourself? Pathetic."),
+            Self::TransferNonIntegerAmount => ClientErrInfo::new("Invalid amount", "You must specify an integer amount more than "),
+            Self::TransferTooSmallAmount => ClientErrInfo::new("Invalid amount", "The minimum transfer amount is `100MTC$`"),
+            Self::TransferInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to transfer the money you came to the conclusion that you're broke"),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
             Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.").as_str()),
             // -- Math
             Self::InvalidSolveExpression(expr) => ClientErrInfo::new("Invalid expression", format!("`{expr}` is not a valid expression!").as_str()),
             Self::AnswerNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to answer", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`").as_str()),
+            Self::SolutionNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to reveal the solution of", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`").as_str()),
             // -- Misc
             Self::AccountRequired(prefix) => ClientErrInfo::new("🔒Account required", format!("To gain access to this command you must first create a MathBot©™ account\n\nTo create a MathBot©™ account, simply execute `{prefix}account create`").as_str()),
         }

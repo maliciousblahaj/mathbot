@@ -1,20 +1,17 @@
 use std::{str::FromStr, sync::Arc};
 use crate::{Error, Result};
-
-use tokio::sync::Mutex;
-
 use super::ModelController;
 
 #[macro_use]
 pub mod macros;
 
 pub struct ItemController {
-    mc: Arc<Mutex<ModelController>>,
+    mc: Arc<ModelController>,
     key: ItemQueryKey,
 }
 
 impl ItemController {
-    pub fn new(mc: &Arc<Mutex<ModelController>>, key: ItemQueryKey) -> Self {
+    pub fn new(mc: &Arc<ModelController>, key: ItemQueryKey) -> Self {
         Self {
             mc: mc.clone(),
             key: key
@@ -22,7 +19,7 @@ impl ItemController {
     }
 
     pub async fn fetch_item(&self) -> Result<Item> {
-        let fetch_result = item_query_by_key!(&self.key, &self.mc.lock().await.database);
+        let fetch_result = item_query_by_key!(&self.key, &self.mc.database);
         fetch_result
     }
 }

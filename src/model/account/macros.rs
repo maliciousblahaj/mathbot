@@ -29,7 +29,7 @@ macro_rules! account_query_by_key_username {
             Account,
             "SELECT id, user_id, created, balance, smps_solved, banned, mine_slots, previous_claim, 
             awaiting_claim, username, user_bio, pronouns, avatar_url, next_username_update, is_admin 
-            FROM Accounts WHERE username=?",  $keyvalue
+            FROM Accounts WHERE username=? COLLATE NOCASE",  $keyvalue
         )
     };
 }
@@ -41,7 +41,7 @@ macro_rules! account_query_by_key_username_incomplete {
             Account,
             "SELECT id, user_id, created, balance, smps_solved, banned, mine_slots, previous_claim, 
             awaiting_claim, username, user_bio, pronouns, avatar_url, next_username_update, is_admin 
-            FROM Accounts WHERE username LIKE ?", $keyvalue
+            FROM Accounts WHERE username LIKE ? COLLATE NOCASE", $keyvalue
         )
     };
 }

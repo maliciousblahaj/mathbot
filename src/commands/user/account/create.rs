@@ -49,7 +49,7 @@ pub async fn create(params: CommandParams) -> Result<()> {
         ),
     ]);
     if let Some(id) = message.run_interaction(20).await? {
-        (&params).state.get_model_controller().lock().await
+        (&params).state.get_model_controller()
             .create_account(
                 (&params).msg.author.id.into(), 
                 (&params).msg.author.name.clone(), 

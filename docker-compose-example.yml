@@ -4,7 +4,7 @@ services:
       context: .
     environment:
       - DATABASE_URL=sqlite:./db/mathbot.db
-      #DISCORD_TOKEN
+      - DISCORD_TOKEN=REPLACE_THIS_WITH_YOUR_TOKEN
       - BOT_PREFIX="!"
     volumes:
       - ./db:/mathbot/db

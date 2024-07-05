@@ -3,6 +3,7 @@ use mathbot::{command::{Command, CommandCategory, CommandHelp}, vec_of_strings};
 mod solve;
 mod simplemathproblem;
 mod answer;
+mod solution;
 mod rng;
 
 pub fn commands() -> Vec<Command> {
@@ -25,6 +26,12 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("answer", "ans", "an"),
             category.clone(),
             CommandHelp::new("Answer a simple math problem. If you get it right, you earn 10 MathCoins!", " {answer}"),
+        ),
+        Command::new(
+            solution::solution,
+            vec_of_strings!("solution"),
+            category.clone(),
+            CommandHelp::new("Reveal the solution of the ongoing math problem in your current channel (you won't gain any rewards)", ""),
         ),
         Command::new(
             rng::rng,

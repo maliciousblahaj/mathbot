@@ -1,20 +1,19 @@
 use std::sync::Arc;
 
-use tokio::sync::Mutex;
 use crate::{account_query_by_key, get_current_timestamp_secs, model::ModelController, Error, Result};
 
 #[macro_use]
 pub mod macros;
 
 pub struct AccountController {
-    mc: Arc<Mutex<ModelController>>,
+    mc: Arc<ModelController>,
     key: AccountQueryKey,
     fetched_account: Option<Account>,
 }
 
 //WHEN SIGNING UP, PREVENT USERS FROM USING JUST NUMBERS AS THEIR USERNAME
 impl AccountController{
-    pub fn new(mc: &Arc<Mutex<ModelController>>, key: AccountQueryKey) -> Self {
+    pub fn new(mc: &Arc<ModelController>, key: AccountQueryKey) -> Self {
         Self {
             mc: mc.clone(),
             key: key,
@@ -23,7 +22,7 @@ impl AccountController{
     }
 
     pub async fn fetch_account(&mut self) -> Result<Account> {
-        let fetched_account = account_query_by_key!(&self.key, &self.mc.lock().await.database)?;
+        let fetched_account = account_query_by_key!(&self.key, &self.mc.database)?;
         self.fetched_account = Some(fetched_account.clone());
         self.key = AccountQueryKey::id(fetched_account.id.clone());
         Ok(fetched_account)
@@ -36,7 +35,7 @@ impl AccountController{
             "SELECT id, account_id, item_id FROM Slots WHERE id =
             (SELECT id FROM Accounts WHERE account_id=?)", id
         )
-            .fetch_all(&self.mc.lock().await.database)
+            .fetch_all(&self.mc.database)
             .await
             .map_err(|e| Error::FailedToFetchAccountSlots(e))
     }
@@ -46,7 +45,7 @@ impl AccountController{
         sqlx::query!(
             "DELETE FROM Accounts WHERE id=?", id
         )
-            .execute(&self.mc.lock().await.database)
+            .execute(&self.mc.database)
             .await
             .map_err(|e| Error::FailedToDeleteAccount(e))?;
         Ok(())

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS "Accounts" (
 	"mine_slots"	INTEGER NOT NULL DEFAULT 0, --number of mine slots
 	"previous_claim"	INTEGER NOT NULL DEFAULT 0, --unix timestamp
 	"awaiting_claim"	INTEGER NOT NULL DEFAULT 0, --number of mathcoins that have not been claimed
-	"username"		TEXT NOT NULL UNIQUE,
+	"username"		TEXT NOT NULL COLLATE NOCASE UNIQUE,
 	"user_bio"		TEXT, --optional
 	"pronouns"		TEXT, --optional
 	"avatar_url"	TEXT NOT NULL,

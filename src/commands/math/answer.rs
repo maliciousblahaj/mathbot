@@ -17,7 +17,7 @@ pub async fn answer(params: CommandParams) -> Result<()> {
         None => format!("That is correct! Well done!\nPlease create an account to save your statistics and rewards in the future! To do so, execute `{}account create`.", params.bot_prefix),
         Some(acc) if acc.is_banned()? => format!("That is correct! Well done!\nYou did not recieve any rewards since you're banned. You'll get unbanned <t:{}:R>", acc.banned),
         Some(acc) => {
-            sqlx::query!("UPDATE Accounts SET smps_solved = smps_solved + 1, balance = balance + 10 WHERE id=?", acc.id).execute(params.state.get_model_controller().lock().await.get_database())
+            sqlx::query!("UPDATE Accounts SET smps_solved = smps_solved + 1, balance = balance + 10 WHERE id=?", acc.id).execute(params.state.get_model_controller().get_database())
                 .await.map_err(|e| Error::FailedToIncrementSmpsSolved(e))?;
             format!("That is correct! Well done!\nTotal smp's solved: `{}`\nYou earned `{}MTC$`", acc.smps_solved+1, 10)
         }

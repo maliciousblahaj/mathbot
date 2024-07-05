@@ -1,5 +1,5 @@
 use std::{fmt::Display, sync::Arc};
-use crate::{error::ClientErrInfo, get_current_timestamp_secs, model::{account::AccountController, ModelController}, send_embed, ui::embed::{error_embed, error_embed_no_author}, SendCtx};
+use crate::{error::ClientErrInfo, get_current_timestamp_secs, model::{account::AccountController, ModelController}, send_embed, ui::embed::error_embed, SendCtx};
 use color_eyre::owo_colors::OwoColorize;
 use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
@@ -106,7 +106,7 @@ impl Bot {
 
         let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, authoraccount.clone(), ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone());
         let command = parsed.command;
-        let embedctx = authoraccount.map(|_| params.get_embed_ctx());
+        let embedctx = params.get_embed_ctx();
         let sendctx = SendCtx::from_params(&params);
 
         if let Err(e) = command.run(params).await {
@@ -119,10 +119,8 @@ impl Bot {
                     log(format!("{} - {e:?}", "[ERR]".red()));
                     ClientErrInfo::new("Internal error", "Something went wrong")},
             };
-            let embed = match embedctx {
-                Some(embedctx) => error_embed(&embedctx, error_info),
-                None => error_embed_no_author(error_info),
-            };
+            let embed = error_embed(&embedctx, error_info);
+                
             send_embed(embed, &sendctx).await?;
         }
         Ok(())
@@ -134,7 +132,7 @@ impl Bot {
 pub struct GlobalState {
     start_time: u64,
     smp_answers: Arc<Mutex<HashMap<u64, i64>>>,
-    mc: Arc<Mutex<ModelController>>,
+    mc: Arc<ModelController>,
 }
 
 impl GlobalState {
@@ -143,7 +141,7 @@ impl GlobalState {
             Self {
                 start_time: get_current_timestamp_secs()?,
                 smp_answers: Arc::new(Mutex::new(HashMap::new())),
-                mc: Arc::new(Mutex::new(ModelController::new(database))),
+                mc: Arc::new(ModelController::new(database)),
             }
         )
     }
@@ -156,7 +154,7 @@ impl GlobalState {
         &self.smp_answers
     }
 
-    pub fn get_model_controller(&self) -> &Arc<Mutex<ModelController>> {
+    pub fn get_model_controller(&self) -> &Arc<ModelController> {
         &self.mc
     }
 }

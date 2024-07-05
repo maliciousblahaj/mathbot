@@ -1,6 +1,6 @@
 use core::fmt;
 use std::{collections::HashMap, fmt::Display, future::Future, sync::Arc};
-use crate::{bot::GlobalState, error::ClientError, model::account::Account, ui::embed::EmbedCtx, Error, Result};
+use crate::{bot::GlobalState, error::ClientError, model::account::{Account, AccountController, AccountQueryKey}, ui::embed::EmbedCtx, Error, Result};
 use indexmap::IndexMap;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
@@ -304,9 +304,30 @@ impl CommandParams {
         }
     }
 
+    pub async fn get_account_by_user_input<S: AsRef<str> + Display>(&self, input: S) -> Option<Account> {
+        let mut input = input.to_string();
+        if let Some(s) = input.strip_prefix("@/") { input = s.to_string(); }
+        if let Some(s) = input.strip_prefix("<@") { input = s.to_string(); }
+        if let Some(s) = input.strip_suffix(">") { input = s.to_string(); }
+        println!("{}",input);
+        let key = match input.parse::<i64>() {
+            Ok(id) => AccountQueryKey::user_id(id),
+            Err(_) => AccountQueryKey::username(input.to_string()),
+        };
+        let mut ac = AccountController::new(self.state.get_model_controller(), key);
+        ac.fetch_account().await.ok()
+    }
+
     pub fn require_account(&self) -> Result<&Account> {
         let Some(account) = &self.account else {return Err(Error::Client(ClientError::AccountRequired(self.bot_prefix.clone())));};
         Ok(account)
+    }
+
+    pub fn require_admin(&self) -> Option<&Account> {
+        match &self.account {
+            Some(account) if account.is_admin() => Some(account),
+            _ => {return None;}
+        }
     }
 }
 

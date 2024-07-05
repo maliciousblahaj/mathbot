@@ -1,11 +1,10 @@
-use mathbot::{command::CommandParams, error::ClientError, model::item::{Item, ItemController, ItemType}, send_embed, ui::embed::{self, base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
+use mathbot::{command::CommandParams, error::ClientError, model::item::{Item, ItemController, ItemType}, send_embed, send_help, ui::embed::{self, base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
 use serenity::all::{CreateEmbed, EmbedField};
 
 pub async fn iteminfo(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
 
-    let item = params.args.get(0)
-        .ok_or(Error::Client(ClientError::ItemInfoArgumentsNotSpecified))?;
+    let Some(item) = params.args.get(0) else {return send_help(params).await;};
 
     let mc = params.state.get_model_controller();
     let itemc = ItemController::new(

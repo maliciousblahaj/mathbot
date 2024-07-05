@@ -11,7 +11,7 @@ use itertools::Itertools;
 pub async fn help(params: CommandParams) -> Result<()> {
     if let Some((command, _, _, commandsequence, _)) = parse_command(&params.bot_commands, params.args.clone()){
 
-        let embed = help_embed(&params, command, &commandsequence)?;
+        let embed = help_embed(&params, &command, &commandsequence)?;
 
         send_embed(embed, &SendCtx::from_params(&params)).await?;
 
@@ -25,7 +25,7 @@ pub async fn help(params: CommandParams) -> Result<()> {
         .description(format!("Here are all of the base commands. To run the commands, specify `{prefix}` before them. Write `{prefix}help {{command}}` to learn more about the commands"));
 
     for (category, cmdvec) in 
-        match params.bot_commands.get_command_index().ok_or(Error::CommandIndexDoesntExist)? {
+        match params.bot_commands.read().expect("Help menu Command RwLock posioned").get_command_index().ok_or(Error::CommandIndexDoesntExist)? {
             CommandIndex::Root(indexmap) => indexmap,
             _ => {return Err(Error::SubcommandIndexAtRootLevel);}
         }
@@ -75,6 +75,7 @@ fn help_embed<S: AsRef<str> + Display>(params: &CommandParams, command: &Command
             "Subcommands",
             match command.get_subcommands()
                         .ok_or(Error::ImpossibleError)?
+                        .read().expect("Help embed Command RwLock posioned")
                         .get_command_index()
                         .ok_or(Error::CommandIndexDoesntExist)?
                     {

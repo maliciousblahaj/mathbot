@@ -4,7 +4,7 @@ use crate::{bot::GlobalState, error::ClientError, model::account::Account, ui::e
 use indexmap::IndexMap;
 use serenity::{all::{Context, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
-
+use std::sync::RwLock;
 /// The category a root command can have.
 /// 
 /// Having the category of Admin means the command only generates in the help menu for admins
@@ -151,15 +151,15 @@ impl CommandMap {
 type CommandHandler = Box<dyn Fn(CommandParams) -> BoxFuture<'static, Result<()>> + 'static + Send + Sync>;
 
 /// A Command's name is the 0th element of the aliases vector
-/// Cloning a command makes its handle value None, making its run method return error
+#[derive(Clone)] 
 pub struct Command
 {
-    handle: Option<Arc<CommandHandler>>,
+    handle: Arc<CommandHandler>,
     aliases: Vec<String>,
     cmd_type: Option<CommandType>,
     cmd_category: CommandCategory,
     help: CommandHelp,
-    subcommands: Option<CommandMap>,
+    subcommands: Option<Arc<RwLock<CommandMap>>>,
 }
 
 impl Command
@@ -176,7 +176,7 @@ impl Command
     {
         let handle: CommandHandler = Box::new(move |params| {Box::pin(handle(params))});
         Self {
-            handle: Some(Arc::new(handle)),
+            handle: Arc::new(handle),
             aliases,
             cmd_type: None,
             cmd_category,
@@ -190,12 +190,7 @@ impl Command
     }
 
     pub async fn run(&self, params: CommandParams) -> Result<()> {
-        //all this boilerplate is just because Bot needs to implement Sync
-        let fun = self.handle
-            .as_ref()
-            .ok_or(Error::NoCommandHandle)?;
-
-        fun(params).await
+        (&self.handle)(params).await
     }
 
     pub fn get_aliases(&self) -> &Vec<String> {
@@ -214,7 +209,7 @@ impl Command
         &self.cmd_category
     }
 
-    pub fn get_subcommands(&self) -> Option<&CommandMap> {
+    pub fn get_subcommands(&self) -> Option<&Arc<RwLock<CommandMap>>> {
         self.subcommands.as_ref()
     }
 
@@ -248,9 +243,11 @@ impl Command
     ) -> Result<Self> {
         command.set_cmd_type(CommandType::SubCommand);
         if self.subcommands.is_none() {
-            self.subcommands = Some(CommandMap::new())
+            self.subcommands = Some(Arc::new(RwLock::new(CommandMap::new())));
         }
-        self.subcommands.as_mut().unwrap().register_command(command).unwrap();
+        self.subcommands.as_mut().unwrap().write()
+            .map_err(|_| Error::SubCommandsRwLockPoisoned)?
+            .register_command(command).unwrap();
 
         Ok(self)
     }
@@ -263,23 +260,11 @@ impl fmt::Debug for Command {
         f.debug_struct("Command")
         .field("aliases", &self.aliases)
         .field("type", &self.cmd_type)
-        .field("subcommands", &self.subcommands.as_ref().map(|s_com_map| {s_com_map.get_commands().len()}))
+        .field("subcommands", &self.subcommands.as_ref())
         .finish()
     }
 }
 
-impl Clone for Command {
-    fn clone(&self) -> Self {
-        Self {
-            handle: None,
-            aliases: self.aliases.clone(),
-            cmd_type: self.cmd_type.clone(),
-            cmd_category: self.cmd_category.clone(),
-            help: self.help.clone(),
-            subcommands: self.subcommands.clone(),
-        }
-    }
-}
 
 /// Struct for parameters to a command
 /// 
@@ -294,11 +279,11 @@ pub struct CommandParams{
     pub msg: Message,
     pub state: GlobalState,
     pub bot_prefix: String,
-    pub bot_commands: CommandMap,
+    pub bot_commands: Arc<RwLock<CommandMap>>,
 }
 
 impl CommandParams {
-    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, account: Option<Account>, ctx: Context, msg: Message, state: GlobalState, bot_prefix: String, bot_commands: CommandMap) -> Self {
+    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, account: Option<Account>, ctx: Context, msg: Message, state: GlobalState, bot_prefix: String, bot_commands: Arc<RwLock<CommandMap>>) -> Self {
         Self {
             args,
             args_str,

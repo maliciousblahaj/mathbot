@@ -1,4 +1,4 @@
-use std::{convert::Infallible, error, fmt};
+use std::{error, fmt};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -19,6 +19,8 @@ pub enum Error {
     InvalidAccountSearchParameter(String),
     CommandTypeNotRegistered,
     ButtonMessageNotSentYet,
+    SubCommandsRwLockPoisoned,
+    CommandsRwLockPoisoned,
     
     // -- Bot run errors
     FailedToSendMessage(serenity::Error),
@@ -40,7 +42,8 @@ pub enum Error {
     InvalidInteractionId,
     FetchedSlotsBeforeFetchingAccount,
     DeletedAccountBeforeFetchingAccount,
-    ProcessMessageAccountIdConversionFailed(Infallible),
+    ProcessMessageAccountIdConversionFailed,
+    SendHelpNoHelpCommandConfigured,
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),
@@ -84,18 +87,14 @@ pub enum ClientError {
     FailedToDeleteAccount(Box<Error>),
     
     // -- Currency
-    ItemInfoArgumentsNotSpecified,
     ItemInfoItemNotFound(String, Box<Error>),
     
     // -- Fun
     NoSayContent,
-    ChooseNoArgsSpecified,
-    RockPaperScissorsNothingSpecified,
     RockPaperScissorsInvalidInput(String),
 
     // -- Math
     InvalidSolveExpression(String),
-    NoSolveExpression,
     AnswerNoProblemInChannel(String),
 
     // -- Misc
@@ -129,15 +128,11 @@ impl ClientError {
             Self::FailedToCreateAccount(_) => ClientErrInfo::new("Account creation failed", "An internal error happened"),
             Self::FailedToDeleteAccount(_) => ClientErrInfo::new("Account deletion failed", "An internal error happened"),
             // -- Currency
-            Self::ItemInfoArgumentsNotSpecified => ClientErrInfo::new("Item not specified", "This command requires an item name as an argument"),
             Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
-            Self::ChooseNoArgsSpecified => ClientErrInfo::new("Nothing to choose", "You need to specify at least two things to choose between"),
-            Self::RockPaperScissorsNothingSpecified => ClientErrInfo::new("Invalid input", "You must specify your choice as an argument"),
-            Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("{i} is not a valid choice. Valid choices are 'rock', 'r', 'paper', 'p', 'scissors', 's'.").as_str()),
+            Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.").as_str()),
             // -- Math
-            Self::NoSolveExpression => ClientErrInfo::new("No expression specified", "You have to specify an expression to solve"),
             Self::InvalidSolveExpression(expr) => ClientErrInfo::new("Invalid expression", format!("`{expr}` is not a valid expression!").as_str()),
             Self::AnswerNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to answer", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`").as_str()),
             // -- Misc

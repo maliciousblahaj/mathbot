@@ -80,3 +80,25 @@ pub async fn send_message (message: CreateMessage, ctx: &SendCtx) -> Result<Mess
         .await
         .map_err(|e| Error::FailedToSendMessage(e))
 }
+
+pub async fn send_help(params: CommandParams) -> Result<()> {
+    let help = params.bot_commands.read().expect("Send help Commands RwLock Poisoned")
+        .get_command("help")
+        .ok_or(Error::SendHelpNoHelpCommandConfigured)?
+        .clone();
+
+    let helpparams = CommandParams::new(
+        params.aliassequence.clone(),
+        params.args_str,
+        params.aliassequence,
+        params.account,
+        params.ctx,
+        params.msg,
+        params.state,
+        params.bot_prefix,
+        params.bot_commands.clone(),
+    );
+
+    help.run(helpparams).await?;
+    Ok(())
+}

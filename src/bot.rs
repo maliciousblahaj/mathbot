@@ -5,6 +5,7 @@ use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
 use tokio::sync::Mutex;
 use std::collections::HashMap;
+use std::sync::RwLock;
 
 use crate::command::{CommandMap, CommandParams, CommandType};
 use crate::logging::log;
@@ -12,7 +13,7 @@ use crate::{Result, Error, command::Command, BOT_VERSION};
 
 pub struct BotBuilder {
     prefix: String,
-    commands: CommandMap,
+    commands: Arc<RwLock<CommandMap>>,
     state: GlobalState,
 }
 
@@ -21,18 +22,18 @@ impl BotBuilder {
         Ok(
         Self {
             prefix: prefix.to_string(),
-            commands: CommandMap::new(),
+            commands: Arc::new(RwLock::new(CommandMap::new())),
             state: GlobalState::new(database)?,
         })
     }
 
     /// Register a command
     pub fn register_single(
-        mut self,
+        self,
         mut command: Command,
     ) -> Result<Self> {
         command.set_cmd_type(CommandType::RootCommand);
-        self.commands.register_command(command)?;
+        self.commands.write().map_err(|_| Error::CommandsRwLockPoisoned)?.register_command(command)?;
 
         Ok(self)
     }
@@ -65,19 +66,19 @@ impl BotBuilder {
 
 pub struct Bot {
     prefix: String,
-    commands: CommandMap,
+    commands: Arc<RwLock<CommandMap>>,
     state: GlobalState,
 }
 
 impl Bot {
     fn new(
         prefix: String,
-        commands: CommandMap,
+        commands: Arc<RwLock<CommandMap>>,
         state: GlobalState,
     ) -> Self {
         Self {
             prefix,
-            commands: commands,
+            commands,
             state,
         }
     }
@@ -90,7 +91,7 @@ impl Bot {
         log(format!("{:5} - {} - {}", "[MSG]".bright_green(), &msg.author.name.bright_green(), &msg.content));
 
 
-        let Some(parsed) = self.parse_message(&msg.content) 
+        let Some(parsed) = self.parse_message(&msg.content).await
             //if the message is not a command, return
             else {return Ok(());};
 
@@ -98,7 +99,7 @@ impl Bot {
         let authoraccount = {
             let mut accountcontroller = AccountController::new(
                 self.get_state().get_model_controller(), crate::model::account::AccountQueryKey::user_id(msg.author.id.try_into()
-                    .map_err(|e| Error::ProcessMessageAccountIdConversionFailed(e))?)
+                    .map_err(|_| Error::ProcessMessageAccountIdConversionFailed)?)
             );
             accountcontroller.fetch_account().await.ok()
         };
@@ -185,7 +186,7 @@ impl Bot {
         &self.prefix
     }
 
-    pub fn get_commands(&self) -> &CommandMap {
+    pub fn get_commands(&self) -> &Arc<RwLock<CommandMap>> {
         &self.commands
     }
 

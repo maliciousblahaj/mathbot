@@ -3,13 +3,13 @@ use std::f64::consts::{PI, TAU};
 use evalexpr::{context_map, eval_with_context, Value};
 use mathbot::command::CommandParams;
 use mathbot::error::ClientError;
-use mathbot::{send_text, Error, Result, SendCtx};
+use mathbot::{send_help, send_text, Error, Result, SendCtx};
 
 
 
 pub async fn solve(params: CommandParams) -> Result<()> {
     if params.args.is_empty() {
-        return Err(Error::Client(ClientError::NoSolveExpression));
+        return send_help(params).await;
     }
 
     let context = context_map! {

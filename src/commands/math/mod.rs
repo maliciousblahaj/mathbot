@@ -3,6 +3,7 @@ use mathbot::{command::{Command, CommandCategory, CommandHelp}, vec_of_strings};
 mod solve;
 mod simplemathproblem;
 mod answer;
+mod rng;
 
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Math;
@@ -24,6 +25,12 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("answer", "ans", "an"),
             category.clone(),
             CommandHelp::new("Answer a simple math problem. If you get it right, you earn 10 MathCoins!", " {answer}"),
+        ),
+        Command::new(
+            rng::rng,
+            vec_of_strings!("rng", "random", "randomnumber", "randomnumbergenerator"),
+            category.clone(),
+            CommandHelp::new("Generate a random integer in an inclusive range", " {start number} {end number}"),
         ),
     ]
 }

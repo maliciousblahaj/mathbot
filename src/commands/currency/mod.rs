@@ -1,6 +1,7 @@
 use mathbot::{command::{Command, CommandCategory, CommandHelp, CommandType}, vec_of_strings};
 
 mod iteminfo;
+mod balance;
 mod transfer;
 
 pub fn commands() -> Vec<Command> {
@@ -17,6 +18,12 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("transfer", "trans", "transf", "gift", "give"),
             category.clone(),
             CommandHelp::new("Transfer MathCoins to someone else (preferably the admins)", " {amount} {user}"),
+        ),
+        Command::new(
+            balance::balance,
+            vec_of_strings!("balance", "bal"),
+            category.clone(),
+            CommandHelp::new("View your or someone else's balance", " /{username}"),
         ),
     ]
 }

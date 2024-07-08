@@ -30,7 +30,7 @@ pub async fn fractionify(params: CommandParams) -> Result<()> {
     Ok(())
 }
 
-///returns the integer part, decimal part, repeating pattern, length of decimal part, length of repeating pattern
+///Returns the integer part, decimal part, repeating pattern, length of decimal part, length of repeating pattern
 fn parse_fractionify_input(input: &String) -> Option<(i64, i64, i64, u32, u32)>{
     let output = regex_captures!("^([0-9]+)(?:(?:.([0-9]+)?)(?:\\(([0-9]+)\\))?)?$", input);
     output.map(

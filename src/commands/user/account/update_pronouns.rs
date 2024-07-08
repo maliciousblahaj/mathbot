@@ -1,17 +1,33 @@
-/*
-case "update_pronouns":
-    if len(args) == 1:
-        await help(ctx,"account","update_pronouns")
-        return
-    if args[1] in ["remove", "delete"]:
-        authoracc.pronouns = None
-        await ctx.send(embed=Embed.BaseEmbed(ctx.author.id,title="Successfully removed pronouns", description=f"Successfully removed your pronouns",colorid="success"))
-        return
-    pronouns = args[1]
-    if validPronouns(pronouns) == False:
-        await ctx.send(embed=Embed.ErrorEmbed(ctx.author.id,"invalidpronouns"))
-        return
-    authoracc.pronouns = pronouns
-    await ctx.send(embed=Embed.BaseEmbed(ctx.author.id,title="Successfully updated pronouns", description=f"Successfully updated your pronouns to `{pronouns}`",colorid="success"))
-    return
-*/
+use lazy_regex::regex;
+use mathbot::{command::CommandParams, error::ClientError, send_embed, send_help, ui::embed::{base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
+
+pub async fn update_pronouns(params: CommandParams) -> Result<()>{
+    let account = params.require_account()?;
+    let Some(pronouns) = params.args.get(0) else {return send_help(params).await;};
+    let newpronouns = match pronouns.as_str() {
+        "remove" => None, 
+        p => {
+            if !valid_pronouns(p) { return Err(Error::Client(ClientError::UpdatePronounsInvalid));}
+            Some(p.to_string())
+        }
+    };
+    
+    
+    sqlx::query!("UPDATE Accounts SET pronouns=? WHERE id=?", newpronouns, account.id)
+        .execute(&params.state.get_model_controller().get_database().clone())
+        .await
+        .map_err(|e| Error::FailedToUpdateAccountPronouns(e))?;
+
+    let embed = base_embed(&EmbedCtx::from_account(account), ColorType::Success)
+        .title("Success")
+        .description("Successfully updated your pronouns");
+    send_embed(embed, &SendCtx::from_params(&params)).await?;
+    Ok(())
+}
+
+
+fn valid_pronouns(pronouns: &str) -> bool {
+    if !matches!(pronouns.len(), 3..=20){ return false; }
+    let regex = regex!("^[A-Za-zÅÄÖåäö]+(/[A-Za-zÅÄÖåäö]+)?$");
+    regex.is_match(pronouns)
+}

@@ -92,6 +92,12 @@ pub fn command() -> Result<Command> {
                     category.clone(),
                     CommandHelp::new("Update your avatar shown on your profile. You can either attach an image to your message or paste an image URL", " /{new avatar url}"),
                 ),
+                Command::new(
+                    update_pronouns::update_pronouns,
+                    vec_of_strings!("update_pronouns"),
+                    category.clone(),
+                    CommandHelp::new("Update your pronouns shown on your profile. Pronouns must be 3-20 characters long, can only contain letters, and must be in the correct format. To remove your pronouns, specify 'remove' as an argument", " {new pronouns}"),
+                ),
             ]
         )?
     )

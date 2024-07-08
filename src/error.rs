@@ -66,6 +66,7 @@ pub enum Error {
     FailedToUpdateAccountBio(sqlx::Error),
     FailedToUpdateAccountAvatar(sqlx::Error),
     FailedToUpdateAccountUsername(sqlx::Error),
+    FailedToUpdateAccountPronouns(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),
@@ -99,6 +100,7 @@ pub enum ClientError {
     UpdateUsernameAlreadyExists(String),
     UpdateUsernameInvalidLength,
     UpdateUsernameTooSoon(i64),
+    UpdatePronounsInvalid,
     
     // -- Currency
     ItemInfoItemNotFound(String, Box<Error>),
@@ -151,6 +153,7 @@ impl ClientError {
             Self::UpdateUsernameAlreadyExists(username) => ClientErrInfo::new("Username update failed", format!("The username `@{username}` is already taken by another MathBot user! Please choose a different username").as_str()),
             Self::UpdateUsernameInvalidLength => ClientErrInfo::new("Invalid username length", "Usernames must be 2-20 characters long"),
             Self::UpdateUsernameTooSoon(timestamp) => ClientErrInfo::new("You're a little bit too quick", format!("You can update your username again in <t:{timestamp}:R>").as_str()),
+            Self::UpdatePronounsInvalid => ClientErrInfo::new("Invalid pronouns", "Pronouns must be 3-20 characters long and in the correct format"),
             // -- Currency
             Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),
             Self::TransferRecieverDoesntExist => ClientErrInfo::new("Invalid reciever", "There is no MathBot©™ account connected to the user you specified"),

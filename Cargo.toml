@@ -21,3 +21,4 @@ sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite"]}
 itertools = "0.13"
 uuid = {version = "1.9", features = ["v4"]}
 reqwest = "0.12"
+lazy-regex = "3.1"

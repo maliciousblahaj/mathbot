@@ -5,6 +5,7 @@ mod simplemathproblem;
 mod answer;
 mod solution;
 mod rng;
+mod fractionify;
 
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Math;
@@ -38,6 +39,12 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("rng", "random", "randomnumber", "randomnumbergenerator"),
             category.clone(),
             CommandHelp::new("Generate a random integer in an inclusive range", " {start number} {end number}"),
+        ),
+        Command::new(
+            fractionify::fractionify,
+            vec_of_strings!("fractionify", "frac", "fractionize", "fract", "fraction"),
+            category.clone(),
+            CommandHelp::new("Turn any non-irrational decimal number into a fraction! To use it with repeating patterns, surround those with parenthesis like this: 1.33333 -> 1.(3)", " {decimal number}{optional repeating pattern surrounded by parenthesis}"),
         ),
     ]
 }

@@ -22,3 +22,5 @@ itertools = "0.13"
 uuid = {version = "1.9", features = ["v4"]}
 reqwest = "0.12"
 lazy-regex = "3.1"
+num-bigint = "0.4"
+num-integer = "0.1"

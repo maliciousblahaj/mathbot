@@ -1,4 +1,4 @@
-use std::{error, fmt, num::TryFromIntError};
+use std::{error, fmt};
 
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -46,7 +46,7 @@ pub enum Error {
     DeletedAccountBeforeFetchingAccount,
     ProcessMessageAccountIdConversionFailed,
     SendHelpNoHelpCommandConfigured,
-    TimestampToI64Failed(TryFromIntError),
+    TimestampToI64Failed(std::num::TryFromIntError),
     FailedToGetAvatarUrl(reqwest::Error),
     FailedToConvertAvatarContentType(reqwest::header::ToStrError),
 
@@ -118,6 +118,7 @@ pub enum ClientError {
     InvalidSolveExpression(String),
     AnswerNoProblemInChannel(String),
     SolutionNoProblemInChannel(String),
+    InvalidFractionifyInput,
 
     // -- Misc
     AccountRequired(String),
@@ -168,6 +169,7 @@ impl ClientError {
             Self::InvalidSolveExpression(expr) => ClientErrInfo::new("Invalid expression", format!("`{expr}` is not a valid expression!").as_str()),
             Self::AnswerNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to answer", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`").as_str()),
             Self::SolutionNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to reveal the solution of", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`").as_str()),
+            Self::InvalidFractionifyInput => ClientErrInfo::new("Invalid input", "You must specify a decimal number, and optionally a repeating pattern wrapped in parenthesis, for example `1.2(3)` for `1.233333...`"),
             // -- Misc
             Self::AccountRequired(prefix) => ClientErrInfo::new("🔒Account required", format!("To gain access to this command you must first create a MathBot©™ account\n\nTo create a MathBot©™ account, simply execute `{prefix}account create`").as_str()),
         }

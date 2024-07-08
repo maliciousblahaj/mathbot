@@ -65,6 +65,7 @@ pub enum Error {
     FailedToTransferMathCoins(sqlx::Error),
     FailedToUpdateAccountBio(sqlx::Error),
     FailedToUpdateAccountAvatar(sqlx::Error),
+    FailedToUpdateAccountUsername(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),
@@ -95,6 +96,9 @@ pub enum ClientError {
     FailedToCreateAccount(Box<Error>),
     FailedToDeleteAccount(Box<Error>),
     UpdateAvatarInvalidAvatarUrl(String),
+    UpdateUsernameAlreadyExists(String),
+    UpdateUsernameInvalidLength,
+    UpdateUsernameTooSoon(i64),
     
     // -- Currency
     ItemInfoItemNotFound(String, Box<Error>),
@@ -144,6 +148,9 @@ impl ClientError {
             Self::FailedToCreateAccount(_) => ClientErrInfo::new("Account creation failed", "An internal error happened"),
             Self::FailedToDeleteAccount(_) => ClientErrInfo::new("Account deletion failed", "An internal error happened"),
             Self::UpdateAvatarInvalidAvatarUrl(url) => ClientErrInfo::new("Invalid avatar url", format!("`{url}` is not a valid avatar url! Supported image formats are `png`, `jpeg`, `jpg`, `webp` and `gif`.").as_str()),
+            Self::UpdateUsernameAlreadyExists(username) => ClientErrInfo::new("Username update failed", format!("The username `@{username}` is already taken by another MathBot user! Please choose a different username").as_str()),
+            Self::UpdateUsernameInvalidLength => ClientErrInfo::new("Invalid username length", "Usernames must be 2-20 characters long"),
+            Self::UpdateUsernameTooSoon(timestamp) => ClientErrInfo::new("You're a little bit too quick", format!("You can update your username again in <t:{timestamp}:R>").as_str()),
             // -- Currency
             Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),
             Self::TransferRecieverDoesntExist => ClientErrInfo::new("Invalid reciever", "There is no MathBot©™ account connected to the user you specified"),

@@ -17,8 +17,15 @@ mod update_avatar;
 
 async fn account(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
+    let mut viewaccount = account.clone();
 
-    send_embed(profile_embed(&EmbedCtx::from_account(account), account), &SendCtx::from_params(&params)).await?;
+    if let Some(user) = params.args.get(0) {
+        if let Some(account) = params.get_account_by_user_input(user).await {
+            viewaccount = account;
+        }
+    }
+
+    send_embed(profile_embed(&EmbedCtx::from_account(account), &viewaccount), &SendCtx::from_params(&params)).await?;
     Ok(())
 }
 
@@ -34,10 +41,7 @@ fn profile_embed(ctx: &EmbedCtx, account: &Account) -> CreateEmbed {
     if let Some(user_bio) = account.user_bio.clone() {
         embedfields.push(("Bio", format!("```{user_bio}```"), false));
     }
-    /*
-            embed.add_field(name="Info", value=f"Total balance: `{self.balance} MTC$`", inline=True)
-        embed.add_field(name="Stats", value=f"Total SMP's solved: `{self.smps}`", inline=True)
-        embed.add_field(name="Account info", value=f"Account created: <t:{self.created}:D>", inline=True)*/
+
     embedfields.append(vec![
         ("Info", format!("Total balance: `{} MTC$`", account.balance), true),
         ("Stats", format!("Total SMP's solved: `{}`", account.smps_solved), true),
@@ -54,7 +58,7 @@ pub fn command() -> Result<Command> {
         account,
         vec_of_strings!("account", "a", "p", "profile"),
         category.clone(),
-        CommandHelp::new("Look up info about your or someone else's account", " /{account}"),
+        CommandHelp::new("Look up info about your or someone else's account", " /{username}"),
     )
         .register(
             vec![
@@ -69,6 +73,12 @@ pub fn command() -> Result<Command> {
                     vec_of_strings!("delete"),
                     category.clone(),
                     CommandHelp::new("Delete your MathBot©™ account (NOT RECOMMENDED)", ""),
+                ),
+                Command::new(
+                    update_username::update_username,
+                    vec_of_strings!("update_username"),
+                    category.clone(),
+                    CommandHelp::new("Update your MathBot username. Usernames can be 2-20 characters long, and no whitespaces are allowed", " {new username}"),
                 ),
                 Command::new(
                     update_bio::update_bio,

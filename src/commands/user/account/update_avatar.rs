@@ -1,21 +1,3 @@
-
-/*
-case "update_avatar":
-    if len(args) == 1:
-        if len(ctx.message.attachments) == 0:
-            await help(ctx,"account","update_avatar")
-            return
-        url = ctx.message.attachments[0].url
-    else:
-        url = args[1]
-    if validAvatarurl(url) == False:
-        await ctx.send(embed=Embed.ErrorEmbed(ctx.author.id,"invalidavatarurl"))
-        return
-    authoracc.avatarurl = url
-    await ctx.send(embed=Embed.BaseEmbed(ctx.author.id,title="Successfully updated your avatar",colorid="success"))
-    return
-*/
-
 use mathbot::{command::CommandParams, error::ClientError, send_embed, send_help, ui::embed::{base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
 
 pub async fn update_avatar(params: CommandParams) -> Result<()> {
@@ -36,7 +18,7 @@ pub async fn update_avatar(params: CommandParams) -> Result<()> {
         .await
         .map_err(|e| Error::FailedToUpdateAccountAvatar(e))?;
 
-    let embed = base_embed(&EmbedCtx::from_account(account), ColorType::Success)
+    let embed = base_embed(&EmbedCtx::new(account.username.clone(), url), ColorType::Success)
         .title("Success")
         .description("Successfully updated your avatar");
     send_embed(embed, &SendCtx::from_params(&params)).await?;

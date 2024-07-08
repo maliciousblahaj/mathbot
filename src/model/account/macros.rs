@@ -74,6 +74,7 @@ macro_rules! account_query_by_key {
             },
             AccountQueryKey::username_incomplete(username_incomplete) =>             
             {
+                let username_incomplete = format!("%{}%", username_incomplete);
                 account_query_by_key_username_incomplete!(username_incomplete)
                     .fetch_one($database)
                     .await

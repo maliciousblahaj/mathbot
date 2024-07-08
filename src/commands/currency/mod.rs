@@ -16,7 +16,7 @@ pub fn commands() -> Vec<Command> {
             transfer::transfer,
             vec_of_strings!("transfer", "trans", "transf", "gift", "give"),
             category.clone(),
-            CommandHelp::new("Transfer MathCoins to someone else (preferably the admins)", " {user} {amount}"),
+            CommandHelp::new("Transfer MathCoins to someone else (preferably the admins)", " {amount} {user}"),
         ),
     ]
 }

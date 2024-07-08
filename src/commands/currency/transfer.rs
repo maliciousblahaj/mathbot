@@ -1,29 +1,28 @@
 use std::cmp;
 
-use mathbot::{command::{Command, CommandParams}, error::ClientError, model::account::Account, send_embed, send_help, ui::embed::{base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
+use mathbot::{command::{Command, CommandParams}, error::ClientError, model::account::Account, send_embed, send_help, ui::{embed::{base_embed, ButtonEmoji, ColorType, EmbedCtx}, ButtonInfo, ButtonMessage}, Error, Result, SendCtx};
 use rand::Rng;
+use serenity::all::{ButtonStyle, CreateButton, CreateMessage};
 
 pub async fn transfer(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
     //get args
-    let (Some(recieverinput), Some(amountinput)) = (params.args.get(0),params.args.get(1))
+    let (Some(amountinput), Some(recieverinput)) = (params.args.get(0),params.args.get(1))
         else { return send_help(params).await; };
     
-    let accountbalancei64 = account.balance as i64;
-
     //get amount to transfer
-    let amount = match amountinput.parse::<i64>().ok() {
+    let amount = match amountinput.parse::<f64>().ok() {
         Some(amount) => amount,
-        _ if amountinput == "all" => accountbalancei64,
-        _ => { return Err(Error::Client(ClientError::TransferNonIntegerAmount)); },
+        _ if amountinput == "all" => account.balance,
+        _ => { return Err(Error::Client(ClientError::TransferInvalidAmount(amountinput.to_string()))); },
     };
     //amount must be greater than 100
-    if &amount < &100 {
+    if &amount < &100.0 {
         return Err(Error::Client(ClientError::TransferTooSmallAmount));
     }
     //user must have at least the amount of money they want to transfer 
     //the next if statement requires awaiting which may desyncronize the account balance data
-    if &accountbalancei64 < &amount {
+    if &account.balance < &amount {
         return Err(Error::Client(ClientError::TransferInsufficientFunds));
     }
     //reciever must be a valid user
@@ -34,7 +33,7 @@ pub async fn transfer(params: CommandParams) -> Result<()> {
         return Err(Error::Client(ClientError::TransferRecieverIsSelf));
     }
     if recieveraccount.is_admin() && !account.is_admin() {
-        let amount = cmp::min(accountbalancei64, amount*2);
+        let amount = f64::min(account.balance, amount*2.0);
         sqlx::query!("UPDATE Accounts SET balance = balance - ? WHERE id=?; UPDATE Accounts SET balance = balance + ? WHERE id=?",
             amount, account.id, amount, recieveraccount.id
         ).execute(params.state.get_model_controller().get_database())
@@ -46,6 +45,30 @@ pub async fn transfer(params: CommandParams) -> Result<()> {
         return Ok(());
     }
 
+    let confirm = CreateMessage::new()
+    .embed(base_embed(&params.get_embed_ctx(), ColorType::UserInfo)
+        .title("Confirm Transfer")
+        .description(format!("Are you sure you want to transfer `{:.0}MTC$` to `@{}`?", amount, recieveraccount.username).as_str())
+    );
+
+    if params.await_confirmation(confirm).await? == false {
+        return Ok(());
+    }
+
+    let tax = get_tax(&account);
+    let tax_change_rate = (100.0-f64::from(tax))*0.01;
+
+    let amount = amount*tax_change_rate;
+
+    sqlx::query!("UPDATE Accounts SET balance = balance - ? WHERE id=?; UPDATE Accounts SET balance = balance + ? WHERE id=?",
+            amount, account.id, amount, recieveraccount.id
+        ).execute(params.state.get_model_controller().get_database())
+            .await.map_err(|e| Error::FailedToTransferMathCoins(e))?;
+
+    send_embed(
+        base_embed(&EmbedCtx::from_account(&account), ColorType::Success)
+            .description(format!("Successfully transferred `{amount:.0}MTC$` to `@{}` after `{tax}%` tax", recieveraccount.username)), 
+        &SendCtx::from_params(&params)).await?;
     Ok(())
 }
 

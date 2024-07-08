@@ -1,4 +1,5 @@
-use std::{error, fmt};
+use std::{error, fmt, num::TryFromIntError};
+
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -32,6 +33,7 @@ pub enum Error {
     FailedToGetSystemTimestamp(std::time::SystemTimeError),
     InvalidTimeDelta,
     SayAliasNotFoundInMessageContent,
+    UpdateBioAliasNotFoundInMessageContent,
     FailedToGetSolveContextMap(evalexpr::EvalexprError),
     ButtonComponentNotFound,
     NonButtonComponentInMessage,
@@ -44,6 +46,9 @@ pub enum Error {
     DeletedAccountBeforeFetchingAccount,
     ProcessMessageAccountIdConversionFailed,
     SendHelpNoHelpCommandConfigured,
+    TimestampToI64Failed(TryFromIntError),
+    FailedToGetAvatarUrl(reqwest::Error),
+    FailedToConvertAvatarContentType(reqwest::header::ToStrError),
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),
@@ -54,9 +59,12 @@ pub enum Error {
     CannotGetAccountQueryItemAsI64,
     CannotGetAccountQueryItemAsString,
     FailedToCreateAccount(sqlx::Error),
+    FailedToCheckIfAccountExists(sqlx::Error),
     FailedToDeleteAccount(sqlx::Error),
     FailedToIncrementSmpsSolved(sqlx::Error),
     FailedToTransferMathCoins(sqlx::Error),
+    FailedToUpdateAccountBio(sqlx::Error),
+    FailedToUpdateAccountAvatar(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),
@@ -86,12 +94,13 @@ pub enum ClientError {
     AccountCreateAccountAlreadyExists,
     FailedToCreateAccount(Box<Error>),
     FailedToDeleteAccount(Box<Error>),
+    UpdateAvatarInvalidAvatarUrl(String),
     
     // -- Currency
     ItemInfoItemNotFound(String, Box<Error>),
     TransferRecieverDoesntExist,
     TransferRecieverIsSelf,
-    TransferNonIntegerAmount,
+    TransferInvalidAmount(String),
     TransferTooSmallAmount,
     TransferInsufficientFunds,
     
@@ -134,11 +143,12 @@ impl ClientError {
             Self::AccountCreateAccountAlreadyExists => ClientErrInfo::new("Account already exists", "You already have a MathBot©™ account"),
             Self::FailedToCreateAccount(_) => ClientErrInfo::new("Account creation failed", "An internal error happened"),
             Self::FailedToDeleteAccount(_) => ClientErrInfo::new("Account deletion failed", "An internal error happened"),
+            Self::UpdateAvatarInvalidAvatarUrl(url) => ClientErrInfo::new("Invalid avatar url", format!("`{url}` is not a valid avatar url! Supported image formats are `png`, `jpeg`, `jpg`, `webp` and `gif`.").as_str()),
             // -- Currency
             Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`").as_str()),
             Self::TransferRecieverDoesntExist => ClientErrInfo::new("Invalid reciever", "There is no MathBot©™ account connected to the user you specified"),
             Self::TransferRecieverIsSelf => ClientErrInfo::new("Invalid reciever", "Did you just think you could fool the admins by transferring to yourself? Pathetic."),
-            Self::TransferNonIntegerAmount => ClientErrInfo::new("Invalid amount", "You must specify an integer amount more than "),
+            Self::TransferInvalidAmount(a) => ClientErrInfo::new("Invalid amount", format!("`{a}` is not a valid amount").as_str()),
             Self::TransferTooSmallAmount => ClientErrInfo::new("Invalid amount", "The minimum transfer amount is `100MTC$`"),
             Self::TransferInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to transfer the money you came to the conclusion that you're broke"),
             // -- Fun

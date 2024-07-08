@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS "Accounts" (
 	"pronouns"		TEXT, --optional
 	"avatar_url"	TEXT NOT NULL,
 	"next_username_update"	INTEGER NOT NULL DEFAULT 0, --unix timestamp
+	"last_election_vote"	TEXT, --last candidate voted
 	"is_admin"		INTEGER NOT NULL DEFAULT 0 --bool
 );
 
@@ -26,7 +27,7 @@ CREATE TABLE IF NOT EXISTS "Inventory" (
 
 CREATE TABLE IF NOT EXISTS "Items" (
         "id"    		INTEGER PRIMARY KEY NOT NULL,
-        "name_id"   	TEXT NOT NULL UNIQUE,
+        "name_id"   	TEXT NOT NULL COLLATE NOCASE UNIQUE,
         "emoji_id"  	TEXT, --optional
         "image_url" 	TEXT, --optional
         "display_name" 	TEXT NOT NULL,

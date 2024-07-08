@@ -53,6 +53,7 @@ macro_rules! item_query_by_key {
             },
             ItemQueryKey::name_id_incomplete(name_id_incomplete) =>             
             {
+                let name_id_incomplete = format!("%{}%", name_id_incomplete);
                 item_query_by_key_name_id_incomplete!(name_id_incomplete)
                     .fetch_one($database)
                     .await

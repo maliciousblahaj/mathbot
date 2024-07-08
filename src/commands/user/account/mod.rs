@@ -10,6 +10,10 @@ use serenity::futures::TryFutureExt;
 
 mod create;
 mod delete;
+mod update_bio;
+mod update_username;
+mod update_pronouns;
+mod update_avatar;
 
 async fn account(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
@@ -65,6 +69,18 @@ pub fn command() -> Result<Command> {
                     vec_of_strings!("delete"),
                     category.clone(),
                     CommandHelp::new("Delete your MathBot©™ account (NOT RECOMMENDED)", ""),
+                ),
+                Command::new(
+                    update_bio::update_bio,
+                    vec_of_strings!("update_bio"),
+                    category.clone(),
+                    CommandHelp::new("Update your account bio, or specify remove as an argument to remove your current one", " {new bio/remove}"),
+                ),
+                Command::new(
+                    update_avatar::update_avatar,
+                    vec_of_strings!("update_avatar"),
+                    category.clone(),
+                    CommandHelp::new("Update your avatar shown on your profile. You can either attach an image to your message or paste an image URL", " /{new avatar url}"),
                 ),
             ]
         )?

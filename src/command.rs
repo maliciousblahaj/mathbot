@@ -1,8 +1,8 @@
 use core::fmt;
 use std::{collections::HashMap, fmt::Display, future::Future, sync::Arc};
-use crate::{bot::GlobalState, error::ClientError, model::account::{Account, AccountController, AccountQueryKey}, ui::embed::EmbedCtx, Error, Result};
+use crate::{bot::GlobalState, error::ClientError, model::account::{Account, AccountController, AccountQueryKey}, ui::{embed::{ButtonEmoji, EmbedCtx}, ButtonInfo, ButtonMessage}, Error, Result};
 use indexmap::IndexMap;
-use serenity::{all::{Context, Message}, futures::future::BoxFuture};
+use serenity::{all::{ButtonStyle, Context, CreateButton, CreateMessage, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
 use std::sync::RwLock;
 /// The category a root command can have.
@@ -309,7 +309,6 @@ impl CommandParams {
         if let Some(s) = input.strip_prefix("@/") { input = s.to_string(); }
         if let Some(s) = input.strip_prefix("<@") { input = s.to_string(); }
         if let Some(s) = input.strip_suffix(">") { input = s.to_string(); }
-        println!("{}",input);
         let key = match input.parse::<i64>() {
             Ok(id) => AccountQueryKey::user_id(id),
             Err(_) => AccountQueryKey::username(input.to_string()),
@@ -327,6 +326,38 @@ impl CommandParams {
         match &self.account {
             Some(account) if account.is_admin() => Some(account),
             _ => {return None;}
+        }
+    }
+
+    pub async fn await_confirmation(&self, message: CreateMessage) -> Result<bool> {
+        let mut confirm = ButtonMessage::new(
+            message,
+            &self, 
+            vec![
+                ButtonInfo::new(
+                    "confirm",
+                    CreateButton::new("confirm")
+                        .emoji(ButtonEmoji::Confirm.emoji())
+                        .style(ButtonStyle::Success),
+                ),
+                ButtonInfo::new(
+                    "decline",
+                    CreateButton::new("decline")
+                        .emoji(ButtonEmoji::Decline.emoji())
+                        .style(ButtonStyle::Danger),
+                ),
+            ]
+        );
+        match confirm.send().await?.run_interaction(20).await? {
+            Some(id) => {
+                confirm.disable_buttons().await?;
+                match id.as_str() {
+                    "confirm" => Ok(true),
+                    "decline" => Ok(false),
+                    _ => Err(Error::InvalidInteractionId),
+                }
+            },
+            None => Ok(false)
         }
     }
 }

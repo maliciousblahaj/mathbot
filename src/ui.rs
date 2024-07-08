@@ -18,7 +18,7 @@ pub mod embed {
             "Did you know that 99% of gambling addicts quit right before they win a zillion MathCoins?",
             "dQw4w9WgXcQ",
             "Have you paid your obligatory account tax to the superior admins of MathBot yet?",
-            "Nothing happened in 1989",
+            "Nothing happened in 1987",
             "Why don't you try winning against our super advanced omniscient rock paper scissors AI?",
             "Did you know, there is a secret command to earn 999999999 MathCoins: `!transfer @/admin all`",
             "Did you know Tobias has cloned himself twice?",

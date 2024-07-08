@@ -36,6 +36,10 @@ pub fn get_current_timestamp_secs() -> Result<u64> {
     get_current_timestamp().map(|t| t.as_secs())
 }
 
+pub fn get_current_timestamp_secs_i64() -> Result<i64> {
+    i64::try_from(get_current_timestamp_secs()?).map_err(|e| Error::TimestampToI64Failed(e))
+}
+
 pub fn get_current_timestamp_millis() -> Result<u128> {
     get_current_timestamp().map(|t| t.as_millis())
 }

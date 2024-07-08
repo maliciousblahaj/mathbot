@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{account_query_by_key, get_current_timestamp_secs, model::ModelController, Error, Result};
+use crate::{account_query_by_key, get_current_timestamp_secs_i64, model::ModelController, Error, Result};
 
 #[macro_use]
 pub mod macros;
@@ -89,7 +89,7 @@ pub struct Account {
 
 impl Account {
     pub fn is_banned(&self) -> Result<bool> {
-        if self.banned < get_current_timestamp_secs()? as i64 {Ok(false)}
+        if self.banned < get_current_timestamp_secs_i64()? {Ok(false)}
             else {Ok(true)}
     }
 

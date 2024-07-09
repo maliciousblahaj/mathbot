@@ -304,6 +304,7 @@ impl CommandParams {
         }
     }
 
+    ///Parses account referencing input from the user and returns an account if applicable
     pub async fn get_account_by_user_input<S: AsRef<str> + Display>(&self, input: S) -> Option<Account> {
         let mut input = input.to_string();
         if let Some(s) = input.strip_prefix("@/") { input = s.to_string(); }
@@ -317,11 +318,13 @@ impl CommandParams {
         ac.fetch_account().await.ok()
     }
 
+    ///Returns a client error if the user does not have an account, else a reference to the account in question
     pub fn require_account(&self) -> Result<&Account> {
         let Some(account) = &self.account else {return Err(Error::Client(ClientError::AccountRequired(self.bot_prefix.clone())));};
         Ok(account)
     }
 
+    ///Returns none if the user is not an admin, else a reference to the account in question
     pub fn require_admin(&self) -> Option<&Account> {
         match &self.account {
             Some(account) if account.is_admin() => Some(account),
@@ -329,6 +332,8 @@ impl CommandParams {
         }
     }
 
+    ///Will return true if the user confirms, false if the user declines, 
+    /// and error if something went wrong during the confirmation process.
     pub async fn await_confirmation(&self, message: CreateMessage) -> Result<bool> {
         let mut confirm = ButtonMessage::new(
             message,

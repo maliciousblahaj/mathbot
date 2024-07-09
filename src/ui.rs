@@ -1,10 +1,12 @@
 use std::fmt::Display;
 use std::time::Duration;
 
+use embed::ButtonEmoji;
 use indexmap::IndexMap;
 use serenity::all::{ButtonStyle, ComponentInteractionDataKind, CreateActionRow, CreateButton, CreateEmbed, CreateMessage, EditMessage, Message};
 
 use crate::command::CommandParams;
+use crate::model::account::Account;
 use crate::{send_message, Error, Result, SendCtx};
 
 pub mod embed {
@@ -161,6 +163,7 @@ pub mod embed {
 }
 
 
+#[derive(Clone)]
 pub struct ButtonInfo {
     custom_id: String,
     button: CreateButton,
@@ -183,19 +186,21 @@ pub struct ButtonMessage {
     sent_message: Option<Message>,
     params: CommandParams,
     button_index: IndexMap<String, ButtonInfo>,
+    buttons: Vec<ButtonInfo>,
 }
 
 impl ButtonMessage {
     pub fn new(message: CreateMessage, params: &CommandParams, buttons: Vec<ButtonInfo> ) -> Self {
         let mut button_index = IndexMap::with_capacity(buttons.len());
-        for buttoninfo in buttons {
-            button_index.insert(buttoninfo.custom_id.clone(), buttoninfo);
+        for buttoninfo in &buttons {
+            button_index.insert(buttoninfo.custom_id.clone(), buttoninfo.clone());
         }
         Self {
             message,
             sent_message: None,
             params: params.clone(),
             button_index,
+            buttons,
         }
     }
 
@@ -209,20 +214,25 @@ impl ButtonMessage {
     }
     pub fn get_buttons(&self) -> CreateActionRow {
         let mut newbuttons = Vec::new();
-        for (_, buttoninfo) in self.button_index.iter() {
+        for buttoninfo in &self.buttons {
             newbuttons.push(
                 buttoninfo.button.clone()
             )
         }
         CreateActionRow::Buttons(newbuttons)
-    } 
+    }
 
     pub fn set_buttons(&mut self, buttons: Vec<ButtonInfo>) {
         let mut button_index = IndexMap::with_capacity(buttons.len());
-        for buttoninfo in buttons {
-            button_index.insert(buttoninfo.custom_id.clone(), buttoninfo);
+        for buttoninfo in &buttons {
+            button_index.insert(buttoninfo.custom_id.clone(), buttoninfo.clone());
         }
+        self.buttons = buttons;
         self.button_index = button_index;
+    }
+
+    pub fn get_buttons_mut(&mut self) -> &mut Vec<ButtonInfo> {
+        &mut self.buttons
     }
 
     pub fn get_disabled_buttons(&self) -> CreateActionRow {
@@ -292,5 +302,101 @@ impl ButtonMessage {
         self.sent_message.as_mut().unwrap().edit(&self.params.ctx.http, updated)
             .await.map_err(|e| Error::FailedToEditMessage(e))?;
         Ok(())
+    }
+}
+
+pub struct PageMessage<T> {
+    button_message: ButtonMessage,
+    items: Vec<T>,
+    total_pages: usize,
+    current_page: usize,
+    embed_gen: fn(&CommandParams, &Account, &Vec<T>, &usize) -> CreateEmbed,
+    account: Account,
+}
+
+impl<T> PageMessage<T> {
+    pub fn new(
+        params: &CommandParams, 
+        items: Vec<T>, 
+        total_pages: usize, 
+        current_page: usize, 
+        embed_gen: fn(&CommandParams, &Account, &Vec<T>, &usize) -> CreateEmbed,
+        account: Account,
+    ) -> Self {
+        let buttons = vec![
+            ButtonInfo::new(
+                "first",
+                CreateButton::new("first")
+                    .emoji(ButtonEmoji::First.emoji())
+                    .style(ButtonStyle::Primary)
+            ),
+            ButtonInfo::new(
+                "previous",
+                CreateButton::new("previous")
+                    .emoji(ButtonEmoji::Previous.emoji())
+                    .style(ButtonStyle::Primary)
+            ),
+            ButtonInfo::new(
+                "next",
+                CreateButton::new("next")
+                    .emoji(ButtonEmoji::Next.emoji())
+                    .style(ButtonStyle::Primary)
+            ),
+            ButtonInfo::new(
+                "last",
+                CreateButton::new("last")
+                    .emoji(ButtonEmoji::Last.emoji())
+                    .style(ButtonStyle::Primary)
+            ),
+        ];
+        let message = CreateMessage::new().embed(embed_gen(&params, &account, &items, &current_page));
+        let mut s = Self {
+            button_message: ButtonMessage::new(message, params, buttons),
+            items,
+            total_pages,
+            current_page,
+            embed_gen,
+            account,
+        };
+        s.set_buttons();
+        s
+    }
+
+    fn set_buttons(&mut self) {
+        let firstdisabled = self.current_page <= 1;
+        let lastdisabled = self.current_page >= self.total_pages;
+        let buttons = self.button_message.get_buttons_mut();
+        if firstdisabled {
+            buttons[0].button = buttons[0].button.clone().disabled(true);
+            buttons[1].button = buttons[1].button.clone().disabled(true);
+        }
+        if lastdisabled {
+            buttons[2].button = buttons[2].button.clone().disabled(true);
+            buttons[3].button = buttons[3].button.clone().disabled(true);
+        }
+    }
+    pub async fn send(&mut self) -> Result<&mut Self> {
+        self.button_message.send().await?;
+        Ok(self)
+    }
+
+    ///Will return none if the message is timeouted
+    /// 
+    ///Should be used inside a while let Some(_) loop 
+    pub async fn run(&mut self, timeout: u64) -> Result<Option<()>> {
+        let Some(id) = self.button_message.run_interaction(timeout).await? else {return Ok(None)};
+
+        self.current_page = match id.as_str() {
+            "first" => 1,
+            "previous" => self.current_page - 1,
+            "next" => self.current_page + 1,
+            "last" => self.total_pages,
+            _ => return Err(Error::InteractionButtonIdNotFound),
+        };
+        self.set_buttons();
+
+        self.button_message.edit_message((self.embed_gen)(&self.button_message.params, &self.account, &self.items, &self.current_page)).await?;
+
+        Ok(Some(()))
     }
 }

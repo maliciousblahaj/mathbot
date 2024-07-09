@@ -62,5 +62,5 @@ pub async fn gamble(params: CommandParams) -> Result<()> {
 //(if the user won, win range to input to function)
 fn get_rng() -> (bool, f64) {
     let mut rng = thread_rng();
-    (rng.gen_bool(WIN_CHANCE), rng.gen_range(0.0..1.0))
+    (rng.gen_bool(WIN_CHANCE), rng.gen::<f64>())
 }

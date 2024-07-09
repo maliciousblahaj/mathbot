@@ -7,4 +7,4 @@ pub mod fun;
 pub mod math;
 #[allow(unused)]
     pub mod admin;
-pub mod test;
+pub mod hidden;

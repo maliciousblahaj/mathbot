@@ -1,7 +1,8 @@
 use mathbot::{command::{Command, CommandCategory, CommandHelp}, vec_of_strings};
 
-pub mod test;
+mod test;
 mod confirmbuttons;
+mod explainusererror;
 
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Test;
@@ -17,6 +18,12 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("confirmtest", "buttontest"),
             category.clone(),
             CommandHelp::new("Test a confirm and deny view", ""),
+        ),
+        Command::new(
+            explainusererror::explainusererror,
+            vec_of_strings!("--explain"),
+            category.clone(),
+            CommandHelp::new("Explain an error", " {error code}"),
         ),
     ]
 }

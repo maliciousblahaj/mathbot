@@ -67,6 +67,8 @@ pub enum Error {
     FailedToUpdateAccountAvatar(sqlx::Error),
     FailedToUpdateAccountUsername(sqlx::Error),
     FailedToUpdateAccountPronouns(sqlx::Error),
+    FailedToAddToAccountBalance(sqlx::Error),
+    FailedToRemoveFromAccountBalance(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),
@@ -109,6 +111,10 @@ pub enum ClientError {
     TransferInvalidAmount(String),
     TransferTooSmallAmount,
     TransferInsufficientFunds,
+    GambleInvalidAmount(String),
+    GambleTooLowAmount,
+    GambleTooHighAmount,
+    GambleInsufficientFunds,
     
     // -- Fun
     NoSayContent,
@@ -162,6 +168,10 @@ impl ClientError {
             Self::TransferInvalidAmount(a) => ClientErrInfo::new("Invalid amount", format!("`{a}` is not a valid amount").as_str()),
             Self::TransferTooSmallAmount => ClientErrInfo::new("Invalid amount", "The minimum transfer amount is `100MTC$`"),
             Self::TransferInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to transfer the money you came to the conclusion that you're broke"),
+            Self::GambleInvalidAmount(amount) => ClientErrInfo::new("Invalid amount", format!("`{amount}` is not a valid amount").as_str()),
+            Self::GambleTooLowAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be greater than `100MTC$`"),
+            Self::GambleTooHighAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be less than `1,000,000MTC$`. We don't want to ruin the economy now, do we?"),
+            Self::GambleInsufficientFunds => ClientErrInfo::new("Insufficient funds", "Hey, wait a minute... you don't really have all that money do you? You see, we can't have people steal money from our precious gambling industry; Corporations are people too, my friend"),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
             Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.").as_str()),

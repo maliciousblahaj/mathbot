@@ -3,7 +3,7 @@ use mathbot::model::account::Account;
 use mathbot::ui::embed::{base_embed, base_embed_no_author, EmbedCtx};
 use mathbot::ui::{ButtonInfo, ButtonMessage};
 use mathbot::command::{Command, CommandCategory, CommandHelp, CommandParams};
-use mathbot::{send_embed, vec_of_strings, Error, Result, SendCtx};
+use mathbot::{format_f64, send_embed, vec_of_strings, Error, Result, SendCtx};
 use mathbot::ui::embed::ColorType;
 use serenity::all::{ButtonStyle, Color, CreateButton, CreateEmbed, CreateMessage};
 use serenity::futures::TryFutureExt;
@@ -43,7 +43,7 @@ fn profile_embed(ctx: &EmbedCtx, account: &Account) -> CreateEmbed {
     }
 
     embedfields.append(vec![
-        ("Info", format!("Total balance: `{} MTC$`", account.balance), true),
+        ("Info", format!("Total balance: `{} MTC$`", format_f64(&account.balance)), true),
         ("Stats", format!("Total SMP's solved: `{}`", account.smps_solved), true),
         ("Account info", format!("Account created: <t:{}:D>", account.created), true),
     ].as_mut());

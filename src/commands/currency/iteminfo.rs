@@ -1,4 +1,4 @@
-use mathbot::{command::CommandParams, error::ClientError, model::item::{Item, ItemController, ItemType}, send_embed, send_help, ui::embed::{self, base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
+use mathbot::{command::CommandParams, error::ClientError, format_i64, model::item::{Item, ItemController, ItemType}, send_embed, send_help, ui::embed::{self, base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
 use serenity::all::{CreateEmbed, EmbedField};
 
 pub async fn iteminfo(params: CommandParams) -> Result<()> {
@@ -36,7 +36,7 @@ fn item_embed(ctx: &EmbedCtx, item: Item) -> CreateEmbed {
         (
             "**PRICE**", 
             match item.price {
-                Some(price) => format!("`{price}MTC$`"),
+                Some(price) => format!("`{}MTC$`", format_i64(&price)),
                 None => "Not for sale".to_string(),
             },
             true

@@ -1,6 +1,6 @@
 use std::cmp;
 
-use mathbot::{command::{Command, CommandParams}, error::ClientError, model::account::Account, send_embed, send_help, ui::{embed::{base_embed, ButtonEmoji, ColorType, EmbedCtx}, ButtonInfo, ButtonMessage}, Error, Result, SendCtx};
+use mathbot::{command::{Command, CommandParams}, error::ClientError, format_f64, model::account::Account, send_embed, send_help, ui::{embed::{base_embed, ButtonEmoji, ColorType, EmbedCtx}, ButtonInfo, ButtonMessage}, Error, Result, SendCtx};
 use rand::Rng;
 use serenity::all::{ButtonStyle, CreateButton, CreateMessage};
 
@@ -48,7 +48,7 @@ pub async fn transfer(params: CommandParams) -> Result<()> {
     let confirm = CreateMessage::new()
     .embed(base_embed(&params.get_embed_ctx(), ColorType::UserInfo)
         .title("Confirm Transfer")
-        .description(format!("Are you sure you want to transfer `{:.0}MTC$` to `@{}`?", amount, recieveraccount.username).as_str())
+        .description(format!("Are you sure you want to transfer `{}MTC$` to `@{}`?", format_f64(&amount), recieveraccount.username).as_str())
     );
 
     if params.await_confirmation(confirm).await? == false {
@@ -67,7 +67,7 @@ pub async fn transfer(params: CommandParams) -> Result<()> {
 
     send_embed(
         base_embed(&EmbedCtx::from_account(&account), ColorType::Success)
-            .description(format!("Successfully transferred `{amount:.0}MTC$` to `@{}` after `{tax}%` tax", recieveraccount.username)), 
+            .description(format!("Successfully transferred `{}MTC$` to `@{}` after `{tax}%` tax", format_f64(&amount), recieveraccount.username)), 
         &SendCtx::from_params(&params)).await?;
     Ok(())
 }

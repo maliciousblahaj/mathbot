@@ -1,6 +1,6 @@
 use mathbot::ui::embed::{ColorType, EmbedCtx};
 use mathbot::{command::CommandParams, ui::embed::base_embed};
-use mathbot::{send_embed, Result, SendCtx};
+use mathbot::{format_f64, send_embed, Result, SendCtx};
 
 pub async fn balance(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
@@ -15,7 +15,7 @@ pub async fn balance(params: CommandParams) -> Result<()> {
     send_embed(
         base_embed(&EmbedCtx::from_account(account), ColorType::Currency)
             .title(format!("@{}'s balance", viewaccount.username))
-            .description(format!("`{}MTC$`", viewaccount.balance)), 
+            .description(format!("`{}MTC$`", format_f64(&viewaccount.balance))), 
     &SendCtx::from_params(&params)
     ).await?;
     Ok(())

@@ -13,6 +13,7 @@ mod tests;
 pub const BOT_VERSION: &'static str = "MathBot 3.0";
 
 use command::CommandParams;
+use num_format::{Locale, ToFormattedString};
 use serenity::all::{ChannelId, CreateEmbed, CreateMessage, Message};
 
 pub use error::{Error, Result};
@@ -105,4 +106,12 @@ pub async fn send_help(params: CommandParams) -> Result<()> {
 
     help.run(helpparams).await?;
     Ok(())
+}
+
+pub fn format_f64(input: &f64) -> String {
+    (*input as i64).to_formatted_string(&Locale::en)
+}
+
+pub fn format_i64(input: &i64) -> String {
+    input.to_formatted_string(&Locale::en)
 }

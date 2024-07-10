@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS "Items" (
 CREATE TABLE IF NOT EXISTS "Slots" (
 	"id"			INTEGER PRIMARY KEY NOT NULL,
 	"account_id"	INTEGER NOT NULL,
-	"item_id"		INTEGER NOT NULL,
+	"item_id"		INTEGER,
 	FOREIGN KEY("account_id") REFERENCES "Accounts"("id"),
 	FOREIGN KEY("item_id") REFERENCES "Items"("id")
 );

@@ -6,6 +6,7 @@ mod balance;
 mod transfer;
 mod gamble;
 mod slots;
+mod mine;
 
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Currency;

@@ -28,10 +28,10 @@ impl AccountController{
         Ok(fetched_account)
     }
 
-    pub async fn fetch_slots(&self) -> Result<Vec<Slot>> {
+    pub async fn fetch_mine(&self) -> Result<Vec<MineItem>> {
         let AccountQueryKey::id(id) = &self.key else {return Err(Error::FetchedSlotsBeforeFetchingAccount);};
         sqlx::query_as!(
-            Slot,
+            MineItem,
             "
             SELECT 
                 Slots.id, 
@@ -41,7 +41,7 @@ impl AccountController{
                 Items.display_name,
                 Items.mps
             FROM Slots 
-                INNER JOIN Items ON Items.id = Slots.item_id
+                LEFT JOIN Items ON Items.id = Slots.item_id
             WHERE account_id = ?
             ", id
         )
@@ -84,13 +84,13 @@ impl AccountController{
     }
 }
 
-pub struct Slot {
+pub struct MineItem {
     pub id: i64,
     pub account_id: i64,
-    pub item_id: i64,
-    pub emoji_id: Option<String>,
-    pub display_name: String,
-    pub mps: Option<f64>,
+    pub item_id: Option<i64>,
+    pub emoji_id: Option<Option<String>>,
+    pub display_name: Option<String>,
+    pub mps: Option<Option<f64>>,
 }
 
 pub struct InventoryItem {

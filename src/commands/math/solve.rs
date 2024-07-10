@@ -20,7 +20,7 @@ pub async fn solve(params: CommandParams) -> Result<()> {
         "tan" => Function::new(|n| Ok(Value::Float(n.as_float()?.tan()))),
     }.map_err(|e| Error::FailedToGetSolveContextMap(e))?;
 
-    let expr = &params.args_str;
+    let expr = &params.args_str.replace("`", "");
     let result = eval_with_context(&expr, &context)
         .map_err(|_| Error::Client(ClientError::InvalidSolveExpression(expr.to_string())))?.to_string();
 

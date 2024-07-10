@@ -34,11 +34,6 @@ pub fn commands() -> Vec<Command> {
             category.clone(),
             CommandHelp::new("Look up info about a specific item", " {item}"),
         ),
-        Command::new(
-            shop::shop,
-            vec_of_strings!("shop", "store"),
-            category.clone(),
-            CommandHelp::new("View the MathBot shop (please buy something)", ""),
-        ),
+        shop::command().unwrap(),
     ]
 }

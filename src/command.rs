@@ -321,6 +321,7 @@ impl CommandParams {
     ///Returns a client error if the user does not have an account, else a reference to the account in question
     pub fn require_account(&self) -> Result<&Account> {
         let Some(account) = &self.account else {return Err(Error::Client(ClientError::AccountRequired(self.bot_prefix.clone())));};
+        if account.is_banned()? {return Err(Error::Client(ClientError::AccountIsBanned(account.banned)));}
         Ok(account)
     }
 

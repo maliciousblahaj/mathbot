@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use embed::ButtonEmoji;
 use indexmap::IndexMap;
-use serenity::all::{ButtonStyle, ComponentInteractionDataKind, CreateActionRow, CreateButton, CreateEmbed, CreateMessage, EditMessage, Message};
+use serenity::all::{ButtonStyle, ComponentInteraction, ComponentInteractionDataKind, CreateActionRow, CreateButton, CreateEmbed, CreateMessage, EditMessage, Message};
 
 use crate::command::CommandParams;
 use crate::model::account::Account;
@@ -257,8 +257,7 @@ impl ButtonMessage {
         return Ok(());
     }
 
-    
-    pub async fn run_interaction(&mut self, timeout: u64) -> Result<Option<String>> {
+    pub async fn run_interaction_no_defer(&mut self, timeout: u64) -> Result<(Option<String>, Option<ComponentInteraction>)> {
         let Some(sent_message) = &self.sent_message 
             else {return Err(Error::ButtonMessageNotSentYet);};
 
@@ -269,12 +268,20 @@ impl ButtonMessage {
             .await
             {
                 Some(x) => x,
-                None => {self.disable_buttons().await?; return Ok(None);},
+                None => {self.disable_buttons().await?; return Ok((None, None));},
             };
 
-        let ComponentInteractionDataKind::Button = interaction.data.kind else {return Ok(None);};
+        let ComponentInteractionDataKind::Button = interaction.data.kind else {return Ok((None, Some(interaction)));};
         
         let custom_id = interaction.data.custom_id.clone();
+
+        Ok((Some(custom_id), Some(interaction)))
+    }
+    
+    pub async fn run_interaction(&mut self, timeout: u64) -> Result<Option<String>> {
+        let (Some(custom_id), Some(interaction)) = self.run_interaction_no_defer(timeout).await? else {
+            return Ok(None);
+        };
 
         let cache_http = self.params.ctx.http.clone();
         tokio::spawn(async move {
@@ -354,7 +361,7 @@ impl<T> PageMessage<T> {
             button_message: ButtonMessage::new(message, params, buttons),
             items,
             total_pages,
-            current_page,
+            current_page: if current_page == 0 {1} else {current_page},
             embed_gen,
             account,
         };
@@ -369,10 +376,16 @@ impl<T> PageMessage<T> {
         if firstdisabled {
             buttons[0].button = buttons[0].button.clone().disabled(true);
             buttons[1].button = buttons[1].button.clone().disabled(true);
+        } else {
+            buttons[0].button = buttons[0].button.clone().disabled(false);
+            buttons[1].button = buttons[1].button.clone().disabled(false);      
         }
         if lastdisabled {
             buttons[2].button = buttons[2].button.clone().disabled(true);
             buttons[3].button = buttons[3].button.clone().disabled(true);
+        } else {
+            buttons[2].button = buttons[2].button.clone().disabled(false);
+            buttons[3].button = buttons[3].button.clone().disabled(false);
         }
     }
     pub async fn send(&mut self) -> Result<&mut Self> {
@@ -384,7 +397,7 @@ impl<T> PageMessage<T> {
     /// 
     ///Should be used inside a while let Some(_) loop 
     pub async fn run(&mut self, timeout: u64) -> Result<Option<()>> {
-        let Some(id) = self.button_message.run_interaction(timeout).await? else {return Ok(None)};
+        let (Some(id), Some(interaction)) = self.button_message.run_interaction_no_defer(timeout).await? else {return Ok(None)};
 
         self.current_page = match id.as_str() {
             "first" => 1,
@@ -396,6 +409,8 @@ impl<T> PageMessage<T> {
         self.set_buttons();
 
         self.button_message.edit_message((self.embed_gen)(&self.button_message.params, &self.account, &self.items, &self.current_page)).await?;
+        
+        let _ = interaction.defer(self.button_message.params.ctx.http.clone()).await;
 
         Ok(Some(()))
     }

@@ -118,6 +118,7 @@ pub enum ClientError {
     GambleTooLowAmount,
     GambleTooHighAmount,
     GambleInsufficientFunds,
+    ShopBuyItemNotFound(String),
     
     // -- Fun
     NoSayContent,
@@ -133,6 +134,7 @@ pub enum ClientError {
     AccountRequired(String),
     UserError(String),
     InvalidUserErrorExplainCode(String),
+    AccountIsBanned(i64),
 }
 
 pub struct ClientErrInfo {
@@ -177,6 +179,7 @@ impl ClientError {
             Self::GambleTooLowAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be greater than `100MTC$`"),
             Self::GambleTooHighAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be less than `1,000,000MTC$`. We don't want to ruin the economy now, do we?"),
             Self::GambleInsufficientFunds => ClientErrInfo::new("Insufficient funds", "Hey, wait a minute... you don't really have all that money do you? You see, we can't have people steal money from our precious gambling industry; Corporations are people too, my friend"),
+            Self::ShopBuyItemNotFound(itemid) => ClientErrInfo::new("Invalid item id", format!("There exists no item matching `{itemid}`")),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
             Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.")),
@@ -192,6 +195,7 @@ impl ClientError {
                 ClientErrInfo::new(&err, format!("To explain this error, execute `{prefix}--explain {err}`"))
             },
             Self::InvalidUserErrorExplainCode(code) => ClientErrInfo::new("Invalid error code", format!("`{code}` is not a valid error code!")),
+            Self::AccountIsBanned(unbanned) => ClientErrInfo::new("You are banned", format!("You will be unbanned <t:{unbanned}:R>")),
         }
     }
 }

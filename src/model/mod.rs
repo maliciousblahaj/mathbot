@@ -48,7 +48,7 @@ impl ModelController {
     }
 
     pub async fn get_shop(&self) -> Result<Vec<ShopItem>> {
-        sqlx::query_as!(ShopItem, "SELECT name_id, emoji_id, display_name, price, mps FROM Items WHERE price IS NULL")
+        sqlx::query_as!(ShopItem, "SELECT name_id, emoji_id, display_name, price, mps FROM Items WHERE price IS NOT NULL")
             .fetch_all(&self.database)
             .await
             .map_err(|e: sqlx::Error| Error::FailedToFetchShop(e))

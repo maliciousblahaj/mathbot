@@ -72,6 +72,7 @@ pub enum Error {
     FailedToAddToAccountBalance(sqlx::Error),
     FailedToRemoveFromAccountBalance(sqlx::Error),
     FailedToFetchShop(sqlx::Error),
+    FailedToBuyItems(sqlx::Error),
 
     // -- Client errors
     Client(ClientError),
@@ -119,6 +120,7 @@ pub enum ClientError {
     GambleTooHighAmount,
     GambleInsufficientFunds,
     ShopBuyItemNotFound(String),
+    ShopBuyInsufficientFunds,
     
     // -- Fun
     NoSayContent,
@@ -180,6 +182,7 @@ impl ClientError {
             Self::GambleTooHighAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be less than `1,000,000MTC$`. We don't want to ruin the economy now, do we?"),
             Self::GambleInsufficientFunds => ClientErrInfo::new("Insufficient funds", "Hey, wait a minute... you don't really have all that money do you? You see, we can't have people steal money from our precious gambling industry; Corporations are people too, my friend"),
             Self::ShopBuyItemNotFound(itemid) => ClientErrInfo::new("Invalid item id", format!("There exists no item matching `{itemid}`")),
+            Self::ShopBuyInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to purchase your items you came to the conclusion that you're broke"),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
             Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.")),

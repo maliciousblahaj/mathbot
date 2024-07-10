@@ -34,7 +34,7 @@ fn mine_embed(params: &CommandParams, account: &Account, mine: &Vec<MineItem>, p
     if page == 0 || page*6-6 >= mine.len() {
         page = 1;
     }
-    let totalmps = mine.iter().filter_map(|item| item.mps).sum();
+    let totalmps: f64 = mine.iter().filter_map(|item| item.mps?).sum();
     
     /*{
         let mut mps = 0.0;
@@ -48,9 +48,19 @@ fn mine_embed(params: &CommandParams, account: &Account, mine: &Vec<MineItem>, p
     for i in page*6-6..page*6 {
         let fieldvalue = match mine.get(i) {
             Some(mineitem) => {
-                if let (Some(item_id), Some)
+                if let (Some(item_id), Some(emoji_id), Some(display_name), Some(Some(mps))) = (&mineitem.item_id, &mineitem.emoji_id, &mineitem.display_name, &mineitem.mps) {
+                    format!("{}**{}**\n`{} MTC$/h`", 
+                        if let Some(emoji_str) = emoji_id {format!("{emoji_str} ")} else {String::new()},
+                        display_name,
+                        mps*3600.0,
+                    )
+                } else {
+                    "Empty\n`0 MTC$/h`".to_string()
+                }
             },
-            None => "Locked".to_string(),
+            None => format!("Locked{}", //TODO: implement slot prices
+                if (account.mine_slots as usize) == i {format!("\nCost: `{}MTC$`", "TODO")} else {String::new()}
+            )
         };
 
         fields.push(
@@ -64,34 +74,6 @@ fn mine_embed(params: &CommandParams, account: &Account, mine: &Vec<MineItem>, p
         .description(format!("Total production: `{:.1}MTC$/h`", totalmps * 3600.0))
         .fields(fields)
 }
-/*
-    def MineEmbed(self, userid: int, page: int=1, targetname: str="") -> discord.Embed:
-        if targetname:
-            name = targetname
-        else: 
-            name = self.username
-        mine = self.mine[page*6-6:page*6]
-        remaining = 6-len(mine)
-        num = 0
-        embed = Embed.BaseEmbed(userid, title=f"@{name}'s mining facility, page {page}", description=f"Total production: `{self.getMPS() * 3600}MTC$/h`", colorid="userinfo")
-        for slot,item in enumerate(mine, start=6*page-5):
-            num = slot
-            if item == 0:
-                embed.add_field(name=f"Slot {slot}", value=f"Empty\n`{0} MTC$/h`", inline=True)
-                continue
-            self._database.c.execute("SELECT name,emojiid,mps FROM Items WHERE id=?", (item,))
-            values = self._database.c.fetchall()[0]
-            embed.add_field(name=f"Slot {slot}", value=f"{values[1]} **{values[0]}**\n`{values[2]*3600} MTC$/h`", inline=True)
-        for i in range(num + 1,num + 1 + remaining):
-            if i == num+1:
-                embed.add_field(name=f"Slot {i}", value=f"Locked\nCost: `{Embed.getSlotPrice(i)}MTC$`", inline=True)
-                continue
-            embed.add_field(name=f"Slot {i}", value=f"Locked", inline=True)
-        return embed
-
-*/
-
-
 
 pub fn command() -> Result<Command> {
     let category = CommandCategory::Currency;

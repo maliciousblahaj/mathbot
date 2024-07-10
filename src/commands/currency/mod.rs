@@ -36,5 +36,6 @@ pub fn commands() -> Vec<Command> {
             CommandHelp::new("Look up info about a specific item", " {item}"),
         ),
         shop::command().unwrap(),
+        mine::command().unwrap(),
     ]
 }

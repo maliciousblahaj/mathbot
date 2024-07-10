@@ -12,7 +12,7 @@ pub async fn create(params: CommandParams) -> Result<()> {
         .embed(
             base_embed_no_author(ColorType::Info)
                 .title("MathBot©™ account creation")
-                .description("To create your MathBot©™ account, we kindly ask you to confirm your acceptance of our Terms of Service. By accepting our Terms of Service, you acknowledge that you have read, understood, and agreed to comply with all the terms and conditions outlined in our agreement. This step is crucial in maintaining the integrity, security, and quality of our service.\n\nhttps://example.com/terms-of-service")
+                .description("To create your MathBot©™ account, we kindly ask you to confirm your acceptance of our Terms of Service. By accepting our Terms of Service, you acknowledge that you have read, understood, and agreed to comply with all the terms and conditions outlined in our agreement. This step is crucial in maintaining the integrity, security, and quality of our service.\n\nhttps://mathbot.dev/terms-of-service")
         );
 
     let mut message = ButtonMessage::new(

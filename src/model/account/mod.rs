@@ -32,12 +32,44 @@ impl AccountController{
         let AccountQueryKey::id(id) = &self.key else {return Err(Error::FetchedSlotsBeforeFetchingAccount);};
         sqlx::query_as!(
             Slot,
-            "SELECT id, account_id, item_id FROM Slots WHERE id =
-            (SELECT id FROM Accounts WHERE account_id=?)", id
+            "
+            SELECT 
+                Slots.id, 
+                Slots.account_id, 
+                Slots.item_id,
+                Items.emoji_id,
+                Items.display_name,
+                Items.mps
+            FROM Slots 
+                INNER JOIN Items ON Items.id = Slots.item_id
+            WHERE account_id = ?
+            ", id
         )
             .fetch_all(&self.mc.database)
             .await
             .map_err(|e| Error::FailedToFetchAccountSlots(e))
+    }
+
+    pub async fn fetch_inventory(&self) -> Result<Vec<InventoryItem>> {
+        let AccountQueryKey::id(id) = &self.key else {return Err(Error::FetchedInventoryBeforeFetchingAccount);};
+        sqlx::query_as!(
+            InventoryItem,
+            "
+            SELECT 
+                Inventory.account_id, 
+                Items.id as item_id,
+                Inventory.count,
+                Items.emoji_id,
+                Items.display_name
+            FROM Inventory
+                INNER JOIN Items ON Items.id = Inventory.item_id
+            WHERE account_id=?
+            AND Inventory.count > 0
+            ", id
+        )
+            .fetch_all(&self.mc.database)
+            .await
+            .map_err(|e| Error::FailedToFetchAccountInventory(e))
     }
 
     pub async fn delete_account(&mut self) -> Result<()> {
@@ -55,7 +87,18 @@ impl AccountController{
 pub struct Slot {
     pub id: i64,
     pub account_id: i64,
-    pub item_id: i64
+    pub item_id: i64,
+    pub emoji_id: Option<String>,
+    pub display_name: String,
+    pub mps: Option<f64>,
+}
+
+pub struct InventoryItem {
+    pub account_id: i64,
+    pub item_id: i64,
+    pub count: i64,
+    pub emoji_id: Option<String>,
+    pub display_name: String,
 }
 
 

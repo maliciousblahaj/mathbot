@@ -8,13 +8,16 @@ mod buy;
 async fn shop(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
     let shop = params.state.get_model_controller().get_shop().await?;
-    let shoppages = (shop.len()-1)/6 + 1;
+    let shoppages = match shop.len() {
+        0 => 0,
+        len => (len-1)/6 + 1
+    };
     let mut currentpage = 1;
 
     //i wish let chains existed in stable rust ;-;
     if let Some(input) = params.args.get(0) {
         if let Ok(page) = input.parse::<usize>() {
-            if page <= shoppages {
+            if page >= 1 && page <= shoppages {
                 currentpage = page;
             }
         }
@@ -49,7 +52,7 @@ fn shop_embed(params: &CommandParams, account: &Account, shop: &Vec<ShopItem>, p
         );
     }
     base_embed(&EmbedCtx::from_account(account), ColorType::Currency)
-        .title(format!("The MathBot Shop page {page}"))
+        .title(format!("The MathBot Shop, page {page}"))
         .description(format!("Use `{}shop buy {{itemid}} /{{count}}` to buy items", params.bot_prefix))
         .fields(fields)
 }

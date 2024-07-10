@@ -1,38 +1,5 @@
-/* case "buy":
-                if len(args) < 2:
-                    await help(ctx,"shop","buy")
-                    return
-                if len(args) < 3:
-                    count = 1
-                else:
-                    if args[2].isdigit() == False:
-                        count = 1
-                    else:
-                        count = int(args[2])
-                try:
-                    item = Item(Globals.devdb,Globals.devdb.getItemId(Globals.devdb.getFullItemName(args[1])))
-                    if item.forsale == False:
-                        raise Exception()
-                    if count < 1:
-                        await ctx.send(embed=Embed.ErrorEmbed(ctx.author.id,"shopinvalidcount",str(count)))
-                        return
-                    if authorAccount.balance < item.price*count:
-                        await ctx.send(embed=Embed.ErrorEmbed(ctx.author.id,"shopnotenoughmoney",str(item.price*count),str(count),item.emojiid,item.name))
-                        return
-                    if ctx.author.id in Globals.buttondict.keys():
-                        await Globals.buttondict[ctx.author.id].KillButtons()
-                    Globals.buttondict[ctx.author.id] = ConfirmShopBuyPage(ctx.author.id,item,count)
-                    msg = await ctx.send(embed=Embed.BaseEmbed(ctx.author.id,title="Confirmation",description=f"Are you sure you want to buy `{count}` {item.emojiid} **{item.name}** for `{item.price*count}MTC$`?",colorid="userinfo"), view=Embed.ConfirmationView())
-                    Globals.buttondict[ctx.author.id].message = msg
-                    return
-                    
-                except Exception as e:
-                    print(e)
-                    await ctx.send(embed=Embed.ErrorEmbed(ctx.author.id,"shopitemdoesntexist", args[1]))
-                    return
-*/
-
 use mathbot::{command::CommandParams, error::ClientError, model::item::{ItemController, ItemQueryKey}, send_embed, send_help, ui::embed::{base_embed, ColorType, EmbedCtx}, Error, Result, SendCtx};
+use serenity::all::CreateMessage;
 
 pub async fn buy(params: CommandParams) -> Result<()> {
     let account = params.require_account()?;
@@ -60,12 +27,20 @@ pub async fn buy(params: CommandParams) -> Result<()> {
         return Err(Error::Client(ClientError::ShopBuyInsufficientFunds));
     }
 
-    //TODO: add confirmation
+    let message = CreateMessage::new().embed(
+        base_embed(&EmbedCtx::from_account(&account), ColorType::Currency)
+            .title("Confirm purchase")
+            .description(format!("Are you sure you want to buy `{count}` {} for `{cost}MTC$`?", item.display_name))
+        );
+    if !params.await_confirmation(message).await? {
+        return Ok(());
+    }
 
     let count = count as i64;
     sqlx::query!("UPDATE Accounts SET balance = balance - ? WHERE id=?; 
     INSERT OR IGNORE INTO Inventory (account_id, item_id, count) VALUES (?, ?, 0);
-    UPDATE Inventory SET count = count + ? WHERE account_id=?", cost, account.id, account.id, item.id, count, account.id)
+    UPDATE Inventory SET count = count + ? WHERE account_id=? AND item_id=?", 
+        cost, account.id, account.id, item.id, count, account.id, item.id)
         .execute(params.state.get_model_controller().get_database())
         .await
         .map_err(|e| Error::FailedToBuyItems(e))?;

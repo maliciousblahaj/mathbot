@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS "Inventory" (
 	"account_id"	INTEGER NOT NULL,
 	"item_id"		INTEGER NOT NULL,
 	"count"			INTEGER NOT NULL DEFAULT 0,
+	UNIQUE("account_id", "item_id"),
 	FOREIGN KEY("account_id") REFERENCES "Accounts"("id"),
 	FOREIGN KEY("item_id") REFERENCES "Items"("id")
 );

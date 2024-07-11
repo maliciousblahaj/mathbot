@@ -101,7 +101,7 @@ impl Bot {
                 return Ok(());
             };
         
-        log(format!("{:5} - {} - {} - {}", "[CMD]".bright_blue(), message_id.purple(), &msg.author.name.bright_green(), &msg.content));
+        log(format!("{:5} - {} - {} - {}", "[CMD]".cyan(), message_id.purple(), &msg.author.name.bright_green(), &msg.content));
 
 
 
@@ -135,7 +135,7 @@ impl Bot {
             send_embed(embed, &sendctx).await?;
         }
         //temp for debugging latency issues. Sent when finished handling command
-        log(format!("{:5} - {} - {} - {}", message_id.purple(), "[RES]".green(), authorname.bright_green(), content));
+        log(format!("{:5} - {} - {} - {}", "[RES]".blue(), message_id.purple(), authorname.bright_green(), content));
 
         Ok(())
     }
@@ -187,7 +187,7 @@ impl EventHandler for Bot {
 
     async fn ready(&self, _ctx: Context, _data_about_bot: Ready) {
         log(
-            format!("{:5} - {} successfully connected", "[SYS]".blue(), BOT_VERSION.bold())
+            format!("{:5} - {} successfully connected", "[SYS]".black(), BOT_VERSION.bold())
         );
     }
 }

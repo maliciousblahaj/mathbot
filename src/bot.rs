@@ -4,6 +4,7 @@ use color_eyre::owo_colors::OwoColorize;
 use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
 use tokio::sync::Mutex;
+use uuid::Uuid;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
@@ -88,12 +89,20 @@ impl Bot {
             return Ok(());
         }
 
-        log(format!("{:5} - {} - {}", "[MSG]".bright_green(), &msg.author.name.bright_green(), &msg.content));
+        let message_id_full = Uuid::new_v4();
+        let message_id = &message_id_full.to_string()[..8];
 
+        
 
         let Some(parsed) = self.parse_message(&msg.content).await
             //if the message is not a command, return
-            else {return Ok(());};
+            else {
+                log(format!("{:5} - {} - {}", "[MSG]".bright_green() , &msg.author.name.bright_green(), &msg.content));
+                return Ok(());
+            };
+        
+        log(format!("{:5} - {} - {} - {}", "[CMD]".bright_blue(), message_id.purple(), &msg.author.name.bright_green(), &msg.content));
+
 
 
         let authoraccount = {
@@ -103,8 +112,10 @@ impl Bot {
             );
             accountcontroller.fetch_account().await.ok()
         };
+        //TEMP!!
+        let (content, authorname) = (&msg.content.clone(), &msg.author.name.clone()); 
 
-        let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, authoraccount.clone(), ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone());
+        let params = CommandParams::new(parsed.args, parsed.args_str, parsed.aliassequence, authoraccount.clone(), ctx, msg, self.get_state().clone(), self.get_prefix().to_string(), self.get_commands().clone(), message_id_full.clone());
         let command = parsed.command;
         let embedctx = params.get_embed_ctx();
         let sendctx = SendCtx::from_params(&params);
@@ -123,6 +134,9 @@ impl Bot {
                 
             send_embed(embed, &sendctx).await?;
         }
+        //temp for debugging latency issues. Sent when finished handling command
+        log(format!("{:5} - {} - {} - {}", message_id.purple(), "[RES]".green(), authorname.bright_green(), content));
+
         Ok(())
     }
 }

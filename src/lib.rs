@@ -47,21 +47,21 @@ pub fn get_current_timestamp_millis() -> Result<u128> {
 
 pub struct SendCtx {
     channel_id: ChannelId,
-    cache_http: Arc<serenity::http::Http>,
+    http: Arc<serenity::http::Http>,
 }
 
 impl SendCtx {
     pub fn from_params(params: &CommandParams) -> Self {
         Self {
             channel_id: params.msg.channel_id,
-            cache_http: params.ctx.http.clone(),
+            http: params.ctx.http.clone(),
         }
     }
 }
 
 pub async fn send_embed(embed: CreateEmbed, ctx: &SendCtx) -> Result<Message> {
     ctx.channel_id.send_message(
-        &ctx.cache_http, 
+        &ctx.http, 
         CreateMessage::new().embed(embed)
     )
         .await
@@ -70,7 +70,7 @@ pub async fn send_embed(embed: CreateEmbed, ctx: &SendCtx) -> Result<Message> {
 
 pub async fn send_text<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Result<Message> {
     ctx.channel_id.say(
-        &ctx.cache_http, 
+        &ctx.http, 
         message.to_string(),
     )
         .await
@@ -79,7 +79,7 @@ pub async fn send_text<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Re
 
 pub async fn send_message (message: CreateMessage, ctx: &SendCtx) -> Result<Message> {
     ctx.channel_id.send_message(
-        &ctx.cache_http, 
+        &ctx.http, 
         message
     )
         .await
@@ -102,6 +102,7 @@ pub async fn send_help(params: CommandParams) -> Result<()> {
         params.state,
         params.bot_prefix,
         params.bot_commands.clone(),
+        params.message_id,
     );
 
     help.run(helpparams).await?;

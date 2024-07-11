@@ -4,6 +4,7 @@ use crate::{bot::GlobalState, error::ClientError, model::account::{Account, Acco
 use indexmap::IndexMap;
 use serenity::{all::{ButtonStyle, Context, CreateButton, CreateMessage, Message}, futures::future::BoxFuture};
 use strum::IntoEnumIterator;
+use uuid::Uuid;
 use std::sync::RwLock;
 /// The category a root command can have.
 /// 
@@ -280,10 +281,11 @@ pub struct CommandParams{
     pub state: GlobalState,
     pub bot_prefix: String,
     pub bot_commands: Arc<RwLock<CommandMap>>,
+    pub message_id: Uuid,
 }
 
 impl CommandParams {
-    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, account: Option<Account>, ctx: Context, msg: Message, state: GlobalState, bot_prefix: String, bot_commands: Arc<RwLock<CommandMap>>) -> Self {
+    pub fn new(args: Vec<String>, args_str: String, aliassequence: Vec<String>, account: Option<Account>, ctx: Context, msg: Message, state: GlobalState, bot_prefix: String, bot_commands: Arc<RwLock<CommandMap>>, message_id: Uuid) -> Self {
         Self {
             args,
             args_str,
@@ -294,6 +296,7 @@ impl CommandParams {
             state,
             bot_prefix,
             bot_commands,
+            message_id,
         }
     }
 

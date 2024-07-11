@@ -50,6 +50,20 @@ impl AccountController{
             .map_err(|e| Error::FailedToFetchAccountSlots(e))
     }
 
+    pub async fn fetch_mps(&self) -> Result<f64> {
+        let AccountQueryKey::id(id) = &self.key else {return Err(Error::FetchedInventoryBeforeFetchingAccount);};
+        let a = sqlx::query!(
+            "SELECT SUM(COALESCE(Items.mps, 0.0)) AS total_mps 
+            FROM Slots 
+                LEFT JOIN Items ON Items.id = Slots.item_id
+            WHERE account_id=?", id
+        )
+            .fetch_one(&self.mc.database)
+            .await
+            .map_err(|e| Error::FailedToFetchAccountMps(e))?;
+        Ok(a.total_mps.unwrap_or(0.0))
+    }
+
     pub async fn fetch_inventory(&self) -> Result<Vec<InventoryItem>> {
         let AccountQueryKey::id(id) = &self.key else {return Err(Error::FetchedInventoryBeforeFetchingAccount);};
         sqlx::query_as!(
@@ -82,6 +96,65 @@ impl AccountController{
             .map_err(|e| Error::FailedToDeleteAccount(e))?;
         Ok(())
     }
+
+    pub async fn claim_mine(&mut self, claimtype: MineClaimType, tax: f64) -> Result<f64> {
+        let AccountQueryKey::id(id) = &self.key else {return Err(Error::ClaimedMineBeforeFetchingAccount);};
+        let time = get_current_timestamp_secs_i64()?;
+        let mps = self.fetch_mps().await?;
+        let tax = match claimtype {
+            MineClaimType::AwaitingClaim => 0.0,
+            _ => tax,
+        };
+        let earnings = {
+            let a = sqlx::query!(
+                r#"
+                SELECT (((?-previous_claim)*? + awaiting_claim) * (1.0-?)) AS "earnings: f64"
+                FROM Accounts
+                WHERE id = ?"#,
+                time, mps, tax, id
+            )
+                .fetch_one(&self.mc.database)
+                .await
+                .map_err(|e| Error::FailedToClaimMine(e))?;
+            a.earnings
+        };
+        match claimtype {
+            MineClaimType::Bank => {
+                sqlx::query!(
+                    "UPDATE Accounts SET balance = balance + ?, previous_claim=?, awaiting_claim=0.0 WHERE id=?",
+                    earnings, time, id
+                )
+                    .execute(&self.mc.database)
+                    .await
+                    .map_err(|e| Error::FailedToClaimMine(e))?;
+            },
+            MineClaimType::AwaitingClaim => {
+                sqlx::query!(
+                    "UPDATE Accounts SET awaiting_claim=?, previous_claim=? WHERE id=?",
+                    earnings, time, id
+                )
+                    .execute(&self.mc.database)
+                    .await
+                    .map_err(|e| Error::FailedToClaimMine(e))?;
+            },
+        }
+        return Ok(earnings.unwrap_or(0.0))
+    }
+
+    pub async fn get_item_count(&self, itemid: i64) -> Result<i64> {
+        let AccountQueryKey::id(id) = &self.key else {return Err(Error::ClaimedMineBeforeFetchingAccount);};
+        let a = sqlx::query!(
+            "SELECT count FROM Inventory WHERE account_id=? AND item_id=?", id, itemid
+        ).fetch_optional(&self.mc.database)
+            .await
+            .map_err(|e| Error::FailedToGetInventoryCount(e))?;
+        Ok(a.map(|a|a.count).unwrap_or(0))
+    }
+}
+
+pub enum MineClaimType {
+    Bank,
+    AwaitingClaim,
 }
 
 pub struct MineItem {
@@ -121,7 +194,7 @@ pub struct Account {
     pub banned: i64,
     pub mine_slots: i64,
     pub previous_claim: i64,
-    pub awaiting_claim: i64,
+    pub awaiting_claim: f64,
     pub username: String,
     pub user_bio: Option<String>,
     pub pronouns: Option<String>,

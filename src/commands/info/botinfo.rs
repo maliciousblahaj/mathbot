@@ -31,8 +31,8 @@ fn get_timedelta_string(time: TimeDelta) -> String {
             1 => format!("{days} day, "),
             days => format!("{days} days, "),
         },
-        hours,
-        minutes,
-        seconds,
+        hours%24,
+        minutes%60,
+        seconds%60,
     )
 }

@@ -36,13 +36,13 @@ pub async fn gamble(params: CommandParams) -> Result<()> {
         true => {
             let multiplier = win_multiplier(multi);
             let won =  multiplier*amount;
-            sqlx::query!("UPDATE Accounts SET balance = balance + ? WHERE id=?", won, account.id)
-                .execute(params.state.get_model_controller().get_database())
+            let a = sqlx::query!("UPDATE Accounts SET balance = balance + ? WHERE id=? RETURNING balance as newbalance", won, account.id)
+                .fetch_one(params.state.get_model_controller().get_database())
                 .await
                 .map_err(|e| Error::FailedToAddToAccountBalance(e))?;
             base_embed(&EmbedCtx::from_account(account), ColorType::Success)
                 .title("You won!")
-                .description(format!("You won **{}MTC$**\n\nPercent won: `{:.0}%`\n\nNew balance: `{}MTC$`", format_f64(&won), multiplier*100.0, format_f64(&(account.balance + won))))
+                .description(format!("You won **{}MTC$**\n\nPercent won: `{:.0}%`\n\nNew balance: `{}MTC$`", format_f64(&won), multiplier*100.0, format_f64(&(a.newbalance))))
         },
         false => {
             sqlx::query!("UPDATE Accounts SET balance = balance - ? WHERE id=?", amount, account.id)

@@ -2,7 +2,6 @@ use std::{error, fmt::{self, Display}};
 
 use rand::seq::SliceRandom;
 
-
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, strum_macros::AsRefStr)]
@@ -47,6 +46,7 @@ pub enum Error {
     FetchedSlotsBeforeFetchingAccount,
     FetchedInventoryBeforeFetchingAccount,
     DeletedAccountBeforeFetchingAccount,
+    ClaimedMineBeforeFetchingAccount,
     ProcessMessageAccountIdConversionFailed,
     SendHelpNoHelpCommandConfigured,
     TimestampToI64Failed(std::num::TryFromIntError),
@@ -75,7 +75,14 @@ pub enum Error {
     FailedToRemoveFromAccountBalance(sqlx::Error),
     FailedToFetchShop(sqlx::Error),
     FailedToBuyItems(sqlx::Error),
-
+    FailedToClaimMine(sqlx::Error),
+    FailedToFetchAccountMps(sqlx::Error),
+    FailedToBuySlot(sqlx::Error),
+    FailedToGetInventoryCount(sqlx::Error),
+    FailedToGetPreviousSlotItem(sqlx::Error),
+    FailedToSetSlotItem(sqlx::Error),
+    FailedToRemoveSlotItem(sqlx::Error),
+    
     // -- Client errors
     Client(ClientError),
 
@@ -123,6 +130,12 @@ pub enum ClientError {
     GambleInsufficientFunds,
     ShopBuyItemNotFound(String),
     ShopBuyInsufficientFunds,
+    MineClaimNotOpenedYet,
+    SlotBuyInsufficientFunds,
+    MineSlotNotOwned,
+    MineSetInvalidItemId,
+    MineSetItemNotOwned,
+    MineRemoveNothingToRemove,
     
     // -- Fun
     NoSayContent,
@@ -185,6 +198,12 @@ impl ClientError {
             Self::GambleInsufficientFunds => ClientErrInfo::new("Insufficient funds", "Hey, wait a minute... you don't really have all that money do you? You see, we can't have people steal money from our precious gambling industry; Corporations are people too, my friend"),
             Self::ShopBuyItemNotFound(itemid) => ClientErrInfo::new("Invalid item id", format!("There exists no item matching `{itemid}`")),
             Self::ShopBuyInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to purchase your items you came to the conclusion that you're broke"),
+            Self::MineClaimNotOpenedYet => ClientErrInfo::new("Nothing to claim", "You haven't initiated your mine yet"),
+            Self::SlotBuyInsufficientFunds => ClientErrInfo::new("Insufficient funds", "You are too broke to buy that new mine slot"),
+            Self::MineSlotNotOwned => ClientErrInfo::new("Invalid slot", "You don't own the slot you specified"),
+            Self::MineSetInvalidItemId => ClientErrInfo::new("Invalid item", "The item you specified does not exist"),
+            Self::MineSetItemNotOwned => ClientErrInfo::new("Invalid item", "You cannot set an item you don't own into your mine!"),
+            Self::MineRemoveNothingToRemove => ClientErrInfo::new("Nothing to remove", "There is no item present at the slot you specified"),
             // -- Fun
             Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
             Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.")),

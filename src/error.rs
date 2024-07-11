@@ -199,7 +199,7 @@ impl ClientError {
             Self::GambleTooHighAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be less than `1,000,000MTC$`. We don't want to ruin the economy now, do we?"),
             Self::GambleInsufficientFunds => ClientErrInfo::new("Insufficient funds", "Hey, wait a minute... you don't really have all that money do you? You see, we can't have people steal money from our precious gambling industry; Corporations are people too, my friend"),
             Self::SlotsTooLowAmount => ClientErrInfo::new("Invalid amount", "Slots betting amount must be greater than `10MTC$`"),
-            Self::SlotsTooHighAmount => ClientErrInfo::new("Invalid amount", "Slots betting amount must be less than `500MTC$`"),
+            Self::SlotsTooHighAmount => ClientErrInfo::new("Invalid amount", "Slots betting amount must be less than `100000MTC$`"),
             Self::ShopBuyItemNotFound(itemid) => ClientErrInfo::new("Invalid item id", format!("There exists no item matching `{itemid}`")),
             Self::ShopBuyInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to purchase your items you came to the conclusion that you're broke"),
             Self::MineClaimNotOpenedYet => ClientErrInfo::new("Nothing to claim", "You haven't initiated your mine yet"),

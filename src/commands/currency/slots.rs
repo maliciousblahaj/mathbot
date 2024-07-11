@@ -21,20 +21,21 @@ pub async fn slots(params: CommandParams) -> Result<()> {
     if &amount > &account.balance {
         return Err(Error::Client(ClientError::GambleInsufficientFunds));
     }
-    if &amount > &500.0 {
+    if &amount > &100000.0 {
         return Err(Error::Client(ClientError::SlotsTooHighAmount));
     }
     let a = sqlx::query!("UPDATE Accounts SET balance = balance - ? WHERE id=? RETURNING balance as newbalance", amount, account.id)
         .fetch_one(params.state.get_model_controller().get_database())
         .await
         .map_err(|e| Error::FailedToRemoveFromAccountBalance(e))?;
+    let balance = a.newbalance;
 
     let slots = Slots::new();
     let (win, jackpot) = slots.get_win();
     let slot_fields = [
         ("**Slot machine**", slots.get_string(), true)
         ];
-    let thumbnail = "https://cdn.discordapp.com/attachments/1063151823151693895/1261073681073967235/slotsexplanation.png";
+    let thumbnail = "https://cdn.discordapp.com/attachments/1063151823151693895/1261085833918812180/slotsexplanation.png";
     let responseembed = match win {
         Some(multiplier) => {
             let won =  multiplier*amount;
@@ -44,7 +45,7 @@ pub async fn slots(params: CommandParams) -> Result<()> {
                 .map_err(|e| Error::FailedToAddToAccountBalance(e))?;
             base_embed(&EmbedCtx::from_account(account), ColorType::Success)
                 .title(if jackpot {"Jackpot!"} else {"You won!"})
-                .description(format!("You won **{}MTC$**\n\nPercent won: `{:.0}%`\n\nNew balance: `{}MTC$`", format_f64(&won), multiplier*100.0, format_f64(&(a.newbalance))))
+                .description(format!("You won **{}MTC$**\n\nPercent won: `{:.0}%`\n\nSpent `{}MTC$`\nNew balance: `{}MTC$`", format_f64(&won), multiplier*100.0, format_f64(&amount), format_f64(&(a.newbalance))))
                 .thumbnail(thumbnail)
                 .fields(slot_fields)
                 
@@ -52,13 +53,25 @@ pub async fn slots(params: CommandParams) -> Result<()> {
         None => {
             base_embed(&EmbedCtx::from_account(account), ColorType::Failure)
                 .title("You lost")
-                .description(format!("Better luck next time!\n\nNew balance: `{}MTC$`", a.newbalance))
+                .description(format!("Better luck next time!\n\nSpent `{}MTC$`\nNew balance: `{}MTC$`", format_f64(&amount), format_f64(&balance)))
                 .thumbnail(thumbnail)
                 .fields(slot_fields)
         }
     };
 
     send_embed(responseembed, &SendCtx::from_params(&params)).await?;
+
+    let mut balance = 1000000000.0;
+    for _ in 0..100000 {
+        let slots = Slots::new();
+        balance -= 10000.0;
+        match slots.get_win() {
+            (Some(mult),_) => {balance += mult*10000.0},
+            (None,_) => ()
+        }
+    }
+    send_text(format!("Ran `100,000` slots of `10,000MTC$` each\n\nDelta balance: `{}MTC$`", format_f64(&(balance-1000000000.0))), 
+        &SendCtx::from_params(&params)).await?;
 
     Ok(())
 }
@@ -77,11 +90,11 @@ impl Slots {
             for i in 0..5 {
                 let random = rng.gen_range(1..=100);
                 row[i] = match random {
-                    93..=100 => SlotItem::Planet, //    8%
-                    81..=92 => SlotItem::Mathtopia, //  12&
-                    61..=80 => SlotItem::Ferris, //     20%
-                    36..=60 => SlotItem::Victor, //     25%
-                    _ => SlotItem::Malako, //           30%
+                    96..=100 => SlotItem::Planet, //    5%
+                    86..=95 => SlotItem::Mathtopia, //  10&
+                    66..=85 => SlotItem::Ferris, //     20%
+                    36..=65 => SlotItem::Victor, //     30%
+                    _ => SlotItem::Malako, //           35%
                 }
             }
             rows.push(row);
@@ -111,7 +124,7 @@ impl Slots {
             match previousitem {
                 (item, 3) => {multiplier += item.multiplier();},
                 (item, 4) => {multiplier += item.multiplier()*2.5;},
-                (item, 5) => {multiplier += item.multiplier()*50.0; if item != &SlotItem::Malako {jackpot = true;};},
+                (item, 5) => {multiplier += item.multiplier()*25.0; if item != &SlotItem::Malako {jackpot = true;};},
                 _ => {continue;},
             }
         }
@@ -152,8 +165,8 @@ impl SlotItem {
 
     pub fn multiplier(&self) -> f64 {
         match self {
-            Self::Planet => 50.0,
-            Self::Mathtopia => 5.0,
+            Self::Planet => 100.0,
+            Self::Mathtopia => 10.0,
             Self::Ferris => 2.5,
             Self::Victor => 1.0,
             Self::Malako => 0.2,

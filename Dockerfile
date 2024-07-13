@@ -1,4 +1,4 @@
-FROM rust:LATEST
+FROM rust:latest
 
 WORKDIR /mathbot
 

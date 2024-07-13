@@ -187,7 +187,7 @@ impl EventHandler for Bot {
 
     async fn ready(&self, _ctx: Context, _data_about_bot: Ready) {
         log(
-            format!("{:5} - {} successfully connected", "[SYS]".black(), BOT_VERSION.bold())
+            format!("{:5} - {} successfully connected", "[SYS]".blink(), BOT_VERSION.bold())
         );
     }
 }

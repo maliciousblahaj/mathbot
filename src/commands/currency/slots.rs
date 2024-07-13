@@ -61,6 +61,7 @@ pub async fn slots(params: CommandParams) -> Result<()> {
 
     send_embed(responseembed, &SendCtx::from_params(&params)).await?;
 
+    /* For the purpose of balancing slots
     let mut balance = 1000000000.0;
     for _ in 0..100000 {
         let slots = Slots::new();
@@ -72,7 +73,7 @@ pub async fn slots(params: CommandParams) -> Result<()> {
     }
     send_text(format!("Ran `100,000` slots of `10,000MTC$` each\n\nDelta balance: `{}MTC$`", format_f64(&(balance-1000000000.0))), 
         &SendCtx::from_params(&params)).await?;
-
+    */
     Ok(())
 }
 

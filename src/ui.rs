@@ -22,7 +22,7 @@ pub mod embed {
             "Have you paid your obligatory account tax to the superior admins of MathBot yet?",
             "Nothing happened in 1987",
             "Why don't you try winning against our super advanced omniscient rock paper scissors AI?",
-            "Did you know, there is a secret command to earn 999999999 MathCoins: `!transfer @/admin all`",
+            "Did you know, there is a secret command to earn 999999999 MathCoins: `!transfer all @/admin`",
             "Did you know Tobias has cloned himself twice?",
             "Just a reminder in favor of your landlord: Your rent is due",
             "We have been trying to reach you about your car's extended warranty",

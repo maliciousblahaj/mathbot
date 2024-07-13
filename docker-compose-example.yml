@@ -6,6 +6,8 @@ services:
       - DATABASE_URL=sqlite:./db/mathbot.db
       - DISCORD_TOKEN=REPLACE_THIS_WITH_YOUR_TOKEN
       - BOT_PREFIX="!"
+      - CARGO_TARGET_DIR=./target 
     volumes:
       - ./db:/mathbot/db
+      - ./docker-target:/mathbot/target
     restart: unless-stopped

@@ -7,6 +7,7 @@ COPY Cargo.toml ./
 COPY Cargo.lock ./
 COPY ./src ./src
 COPY ./migrations ./migrations
+COPY ./.sqlx ./.sqlx
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
@@ -18,6 +19,7 @@ COPY Cargo.toml ./
 COPY Cargo.lock ./
 COPY ./src ./src
 COPY ./migrations ./migrations
+COPY ./.sqlx ./.sqlx
 RUN cargo build --release --bin mathbot
 
 FROM debian:bookworm-slim AS runtime

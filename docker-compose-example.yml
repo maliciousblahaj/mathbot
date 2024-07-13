@@ -3,10 +3,10 @@ services:
     build:
       context: .
     environment:
-      - DATABASE_URL=sqlite:./db/mathbot.db
+      - DATABASE_URL=sqlite:/mathbot/db/mathbot.db
       - DISCORD_TOKEN=REPLACE_THIS_WITH_YOUR_TOKEN
       - BOT_PREFIX="!"
-      - CARGO_TARGET_DIR=./target 
+      - CARGO_TARGET_DIR=/mathbot/target 
     volumes:
       - ./db:/mathbot/db
       - ./docker-target:/mathbot/target

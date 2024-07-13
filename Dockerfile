@@ -2,6 +2,9 @@ FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 
 WORKDIR /mathbot
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates gcc libssl-dev
+
 FROM chef AS planner
 COPY Cargo.toml ./
 COPY Cargo.lock ./

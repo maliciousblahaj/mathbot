@@ -1,5 +1,5 @@
 use std::{fmt::Display, sync::Arc};
-use crate::{error::ClientErrInfo, get_current_timestamp_secs, model::{account::AccountController, ModelController}, send_embed, ui::embed::error_embed, SendCtx};
+use crate::{error::ClientErrInfo, get_current_timestamp_secs, logging::LogType, model::{account::AccountController, ModelController}, send_embed, ui::embed::error_embed, SendCtx};
 use color_eyre::owo_colors::OwoColorize;
 use serenity::{all::{Context, EventHandler, Message, Ready}, async_trait};
 use sqlx::SqlitePool;
@@ -97,11 +97,11 @@ impl Bot {
         let Some(parsed) = self.parse_message(&msg.content).await
             //if the message is not a command, return
             else {
-                log(format!("{:5} - {} - {}", "[MSG]".bright_green() , &msg.author.name.bright_green(), &msg.content));
+                log(format!("{:5} - {}", &msg.author.name.bright_green(), &msg.content), LogType::Message);
                 return Ok(());
             };
         
-        log(format!("{:5} - {} - {} - {}", "[CMD]".cyan(), message_id.purple(), &msg.author.name.bright_green(), &msg.content));
+        log(format!("{:5} - {}", &msg.author.name.bright_green(), &msg.content), LogType::CommandRecieved(message_id.to_string()));
 
 
 
@@ -123,11 +123,11 @@ impl Bot {
         if let Err(e) = command.run(params).await {
             let error_info = match e {
                 Error::Client(ce) => {
-                    log(format!("{} - {ce:?}", "[ERR]".red()));
+                    log(format!("{ce:?}"), LogType::ClientError);
                     ce.get_description()
                 }
                 e => {
-                    log(format!("{} - {e:?}", "[ERR]".red()));
+                    log(format!("{e:?}"), LogType::Error);
                     ClientErrInfo::new("Internal error", "Something went wrong")},
             };
             let embed = error_embed(&embedctx, error_info);
@@ -135,7 +135,7 @@ impl Bot {
             send_embed(embed, &sendctx).await?;
         }
         //temp for debugging latency issues. Sent when finished handling command
-        log(format!("{:5} - {} - {} - {}", "[RES]".blue(), message_id.purple(), authorname.bright_green(), content));
+        log(format!("{} - {}", authorname.bright_green(), content), LogType::CommandResponded(message_id.to_string()));
 
         Ok(())
     }
@@ -179,15 +179,13 @@ impl GlobalState {
 impl EventHandler for Bot {
     async fn message(&self, ctx: Context, msg: Message) {
         if let Err(e) = self.handle_message(ctx, msg).await{
-            log(
-                format!("{:5} - {}", "[ERR]".red(), e.red())
-            );
+            log(format!("{}", e.red()), LogType::Error);
         }
     }
 
     async fn ready(&self, _ctx: Context, _data_about_bot: Ready) {
         log(
-            format!("{:5} - {} successfully connected", "[SYS]".blink(), BOT_VERSION.bold())
+            format!("{} successfully connected", BOT_VERSION.bold()), LogType::System
         );
     }
 }

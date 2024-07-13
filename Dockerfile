@@ -11,7 +11,6 @@ COPY Cargo.lock ./
 COPY ./src ./src
 COPY ./migrations ./migrations
 COPY ./.sqlx ./.sqlx
-RUN cargo add openssl --features vendored
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder

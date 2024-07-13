@@ -10,7 +10,7 @@ COPY ./migrations ./migrations
 
 RUN cargo build --release
 
-CMD ["./target/release/mathbot"]
+CMD ["./target/release/mathbot > ./log.txt"]
 
 #requires a volume in docker compose
 #  volumes:

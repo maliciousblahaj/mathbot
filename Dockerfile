@@ -2,9 +2,6 @@ FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 
 WORKDIR /mathbot
 
-#RUN apt-get update \
-#    && apt-get install -y --no-install-recommends ca-certificates gcc libssl-dev
-
 FROM chef AS planner
 COPY Cargo.toml ./
 COPY Cargo.lock ./
@@ -25,9 +22,10 @@ COPY ./migrations ./migrations
 COPY ./.sqlx ./.sqlx
 RUN cargo build --release --bin mathbot
 
-FROM debian:bookworm-slim AS runtime
+#FROM debian:bookworm-slim AS runtime
+FROM alpine:latest AS runtime
+RUN apk --no-cache add ca-certificates
 WORKDIR /mathbot
-RUN apt-get update && apt install -y openssl
 COPY --from=builder /mathbot/target/release/mathbot /usr/local/bin
 ENTRYPOINT [ "/usr/local/bin/mathbot" ]
 

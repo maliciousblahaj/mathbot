@@ -24,8 +24,7 @@ RUN cargo build --release --bin mathbot
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /mathbot
-RUN apt-get update \
-    && apt-get install -y libssl1.0.0 libssl-dev 
+RUN apt-get update && apt-get install -y libssl1.0.0 libssl-dev 
 COPY --from=builder /mathbot/target/release/mathbot /usr/local/bin
 ENTRYPOINT [ "/usr/local/bin/mathbot" ]
 

@@ -52,6 +52,12 @@ pub enum Error {
     TimestampToI64Failed(std::num::TryFromIntError),
     FailedToGetAvatarUrl(reqwest::Error),
     FailedToConvertAvatarContentType(reqwest::header::ToStrError),
+    FailedToOpenPrimeFile(std::io::Error),
+    PrimeFailedToGetU64,
+    FailedToGetPiDigitFile(std::io::Error),
+    FailedToSeekInPiDigitFile(std::io::Error),
+    FailedToReadInPiDigitFile(std::io::Error),
+    PiFailedToGetFirstByte,
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),
@@ -82,8 +88,10 @@ pub enum Error {
     FailedToGetPreviousSlotItem(sqlx::Error),
     FailedToSetSlotItem(sqlx::Error),
     FailedToRemoveSlotItem(sqlx::Error),
+    FailedToBanAccount(sqlx::Error),
+    FailedToUnbanAccount(sqlx::Error),
     
-    // -- Client errors
+    // -- For client errors
     Client(ClientError),
 
     // -- Misc errors
@@ -148,6 +156,11 @@ pub enum ClientError {
     AnswerNoProblemInChannel(String),
     SolutionNoProblemInChannel(String),
     InvalidFractionifyInput,
+    PiDigitsTooHighAmount,
+    PiDigitsTooHighIndex,
+
+    // -- Admin
+    AdminBanInvalidAccount,
 
     // -- Misc
     AccountRequired(String),
@@ -175,56 +188,66 @@ impl ClientErrInfo {
     }
 }
 
+//to minimize boilerplate instead of writing ClientErrInfo::new(title, description) or (title.to_string, description.to_string) on all match arms
+fn a<S: AsRef<str> + Display, T: AsRef<str> + Display>(title: S, description: T) -> (String, String) {
+    (title.to_string(), description.to_string())
+}
+
 impl ClientError {
     pub fn get_description(&self) -> ClientErrInfo {
-        match self {
+        let (title, description) = match self {
             // -- User
-            Self::AccountCreateAccountAlreadyExists => ClientErrInfo::new("Account already exists", "You already have a MathBot©™ account"),
-            Self::FailedToCreateAccount(_) => ClientErrInfo::new("Account creation failed", "An internal error happened"),
-            Self::FailedToDeleteAccount(_) => ClientErrInfo::new("Account deletion failed", "An internal error happened"),
-            Self::UpdateAvatarInvalidAvatarUrl(url) => ClientErrInfo::new("Invalid avatar url", format!("`{url}` is not a valid avatar url! Supported image formats are `png`, `jpeg`, `jpg`, `webp` and `gif`.")),
-            Self::UpdateUsernameAlreadyExists(username) => ClientErrInfo::new("Username update failed", format!("The username `@{username}` is already taken by another MathBot user! Please choose a different username")),
-            Self::UpdateUsernameInvalidLength => ClientErrInfo::new("Invalid username length", "Usernames must be 2-20 characters long"),
-            Self::UpdateUsernameTooSoon(timestamp) => ClientErrInfo::new("You're a little bit too quick", format!("You can update your username again in <t:{timestamp}:R>")),
-            Self::UpdatePronounsInvalid => ClientErrInfo::new("Invalid pronouns", "Pronouns must be 3-20 characters long and in the correct format"),
+            Self::AccountCreateAccountAlreadyExists => a("Account already exists", "You already have a MathBot©™ account"),
+            Self::FailedToCreateAccount(_) => a("Account creation failed", "An internal error happened"),
+            Self::FailedToDeleteAccount(_) => a("Account deletion failed", "An internal error happened"),
+            Self::UpdateAvatarInvalidAvatarUrl(url) => a("Invalid avatar url", format!("`{url}` is not a valid avatar url! Supported image formats are `png`, `jpeg`, `jpg`, `webp` and `gif`.")),
+            Self::UpdateUsernameAlreadyExists(username) => a("Username update failed", format!("The username `@{username}` is already taken by another MathBot user! Please choose a different username")),
+            Self::UpdateUsernameInvalidLength => a("Invalid username length", "Usernames must be 2-20 characters long"),
+            Self::UpdateUsernameTooSoon(timestamp) => a("You're a little bit too quick", format!("You can update your username again in <t:{timestamp}:R>")),
+            Self::UpdatePronounsInvalid => a("Invalid pronouns", "Pronouns must be 3-20 characters long and in the correct format"),
             // -- Currency
-            Self::ItemInfoItemNotFound(item, _error) => ClientErrInfo::new("Item not found", format!("Couldn't find an item matching `{item}`")),
-            Self::TransferRecieverDoesntExist => ClientErrInfo::new("Invalid reciever", "There is no MathBot©™ account connected to the user you specified"),
-            Self::TransferRecieverIsSelf => ClientErrInfo::new("Invalid reciever", "Did you just think you could fool the admins by transferring to yourself? Pathetic."),
-            Self::TransferInvalidAmount(a) => ClientErrInfo::new("Invalid amount", format!("`{a}` is not a valid amount")),
-            Self::TransferTooSmallAmount => ClientErrInfo::new("Invalid amount", "The minimum transfer amount is `100MTC$`"),
-            Self::TransferInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to transfer the money you came to the conclusion that you're broke"),
-            Self::GambleInvalidAmount(amount) => ClientErrInfo::new("Invalid amount", format!("`{amount}` is not a valid amount")),
-            Self::GambleTooLowAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be greater than `100MTC$`"),
-            Self::GambleTooHighAmount => ClientErrInfo::new("Invalid amount", "Gambling amount must be less than `1,000,000MTC$`. We don't want to ruin the economy now, do we?"),
-            Self::GambleInsufficientFunds => ClientErrInfo::new("Insufficient funds", "Hey, wait a minute... you don't really have all that money do you? You see, we can't have people steal money from our precious gambling industry; Corporations are people too, my friend"),
-            Self::SlotsTooLowAmount => ClientErrInfo::new("Invalid amount", "Slots betting amount must be greater than `10MTC$`"),
-            Self::SlotsTooHighAmount => ClientErrInfo::new("Invalid amount", "Slots betting amount must be less than `100000MTC$`"),
-            Self::ShopBuyItemNotFound(itemid) => ClientErrInfo::new("Invalid item id", format!("There exists no item matching `{itemid}`")),
-            Self::ShopBuyInsufficientFunds => ClientErrInfo::new("Insufficient funds", "After attempting to purchase your items you came to the conclusion that you're broke"),
-            Self::MineClaimNotOpenedYet => ClientErrInfo::new("Nothing to claim", "You haven't initiated your mine yet"),
-            Self::SlotBuyInsufficientFunds => ClientErrInfo::new("Insufficient funds", "You are too broke to buy that new mine slot"),
-            Self::MineSlotNotOwned => ClientErrInfo::new("Invalid slot", "You don't own the slot you specified"),
-            Self::MineSetInvalidItemId => ClientErrInfo::new("Invalid item", "The item you specified does not exist"),
-            Self::MineSetItemNotOwned => ClientErrInfo::new("Invalid item", "You cannot set an item you don't own into your mine!"),
-            Self::MineRemoveNothingToRemove => ClientErrInfo::new("Nothing to remove", "There is no item present at the slot you specified"),
+            Self::ItemInfoItemNotFound(item, _error) => a("Item not found", format!("Couldn't find an item matching `{item}`")),
+            Self::TransferRecieverDoesntExist => a("Invalid reciever", "There is no MathBot©™ account connected to the user you specified"),
+            Self::TransferRecieverIsSelf => a("Invalid reciever", "Did you just think you could fool the admins by transferring to yourself? Pathetic."),
+            Self::TransferInvalidAmount(amount) => a("Invalid amount", format!("`{amount}` is not a valid amount")),
+            Self::TransferTooSmallAmount => a("Invalid amount", "The minimum transfer amount is `100MTC$`"),
+            Self::TransferInsufficientFunds => a("Insufficient funds", "After attempting to transfer the money you came to the conclusion that you're broke"),
+            Self::GambleInvalidAmount(amount) => a("Invalid amount", format!("`{amount}` is not a valid amount")),
+            Self::GambleTooLowAmount => a("Invalid amount", "Gambling amount must be greater than `100MTC$`"),
+            Self::GambleTooHighAmount => a("Invalid amount", "Gambling amount must be less than `1,000,000MTC$`. We don't want to ruin the economy now, do we?"),
+            Self::GambleInsufficientFunds => a("Insufficient funds", "Hey, wait a minute... you don't really have all that money do you? You see, we can't have people steal money from our precious gambling industry; Corporations are people too, my friend"),
+            Self::SlotsTooLowAmount => a("Invalid amount", "Slots betting amount must be greater than `10MTC$`"),
+            Self::SlotsTooHighAmount => a("Invalid amount", "Slots betting amount must be less than `100000MTC$`"),
+            Self::ShopBuyItemNotFound(itemid) => a("Invalid item id", format!("There exists no item matching `{itemid}`")),
+            Self::ShopBuyInsufficientFunds => a("Insufficient funds", "After attempting to purchase your items you came to the conclusion that you're broke"),
+            Self::MineClaimNotOpenedYet => a("Nothing to claim", "You haven't initiated your mine yet"),
+            Self::SlotBuyInsufficientFunds => a("Insufficient funds", "You are too broke to buy that new mine slot"),
+            Self::MineSlotNotOwned => a("Invalid slot", "You don't own the slot you specified"),
+            Self::MineSetInvalidItemId => a("Invalid item", "The item you specified does not exist"),
+            Self::MineSetItemNotOwned => a("Invalid item", "You cannot set an item you don't own into your mine!"),
+            Self::MineRemoveNothingToRemove => a("Nothing to remove", "There is no item present at the slot you specified"),
             // -- Fun
-            Self::NoSayContent => ClientErrInfo::new("Invalid input", "The bot is unable to send an empty message"),
-            Self::RockPaperScissorsInvalidInput(i) => ClientErrInfo::new("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.")),
+            Self::NoSayContent => a("Invalid input", "The bot is unable to send an empty message"),
+            Self::RockPaperScissorsInvalidInput(i) => a("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.")),
             // -- Math
-            Self::InvalidSolveExpression(expr) => ClientErrInfo::new("Invalid expression", format!("`{expr}` is not a valid expression!")),
-            Self::AnswerNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to answer", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`")),
-            Self::SolutionNoProblemInChannel(prefix) => ClientErrInfo::new("Nothing to reveal the solution of", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`")),
-            Self::InvalidFractionifyInput => ClientErrInfo::new("Invalid input", "You must specify a decimal number, and optionally a repeating pattern wrapped in parenthesis, for example `1.2(3)` for `1.233333...`"),
+            Self::InvalidSolveExpression(expr) => a("Invalid expression", format!("`{expr}` is not a valid expression!")),
+            Self::AnswerNoProblemInChannel(prefix) => a("Nothing to answer", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`")),
+            Self::SolutionNoProblemInChannel(prefix) => a("Nothing to reveal the solution of", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`")),
+            Self::InvalidFractionifyInput => a("Invalid input", "You must specify a decimal number, and optionally a repeating pattern wrapped in parenthesis, for example `1.2(3)` for `1.233333...`"),
+            Self::PiDigitsTooHighAmount => a("Invalid amount", "Amount must be less than or equal to 2000, since that's the maximum discord message size"),
+            Self::PiDigitsTooHighIndex => a("Invalid index", "Only 1 billion digits of pi are stored in our dataset"),
+            // -- Admin
+            Self::AdminBanInvalidAccount => a("Invalid account", "There is no MathBot©™ account connected to the user you specified"),
             // -- Misc
-            Self::AccountRequired(prefix) => ClientErrInfo::new("🔒Account required", format!("To gain access to this command you must first create a MathBot©™ account\n\nTo create a MathBot©™ account, simply execute `{prefix}account create`")),
+            Self::AccountRequired(prefix) => a("🔒Account required", format!("To gain access to this command you must first create a MathBot©™ account\n\nTo create a MathBot©™ account, simply execute `{prefix}account create`")),
             Self::UserError(prefix) => {
                 let err = get_user_error();
-                ClientErrInfo::new(&err, format!("To explain this error, execute `{prefix}--explain {err}`"))
+                a(&err, format!("To explain this error, execute `{prefix}--explain {err}`"))
             },
-            Self::InvalidUserErrorExplainCode(code) => ClientErrInfo::new("Invalid error code", format!("`{code}` is not a valid error code!")),
-            Self::AccountIsBanned(unbanned) => ClientErrInfo::new("You are banned", format!("You will be unbanned <t:{unbanned}:R>")),
-        }
+            Self::InvalidUserErrorExplainCode(code) => a("Invalid error code", format!("`{code}` is not a valid error code!")),
+            Self::AccountIsBanned(unbanned) => a("You are banned!", format!("You have been banned by the admins, and will be unbanned <t:{unbanned}:R>. Your access to MathBot commands is limited during your ban period.")),
+        };
+        ClientErrInfo::new(title, description)
     }
 }
 
@@ -238,5 +261,5 @@ const USER_ERRORS: &'static [&'static str] = &[
 ];
 
 fn get_user_error() -> String {
-    USER_ERRORS.choose(&mut rand::thread_rng()).unwrap().to_string()
+    USER_ERRORS.choose(&mut rand::thread_rng()).unwrap_or(&"Error 40").to_string()
 }

@@ -3,3 +3,5 @@
 db
 logs
 docker-compose.yml
+assets
+.sqlx

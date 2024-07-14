@@ -17,23 +17,27 @@ pub mod embed {
     
 
     pub const FOOTER_MESSAGES: &'static [&'static str] = &[
-            "Did you know that 99% of gambling addicts quit right before they win a zillion MathCoins?",
-            "dQw4w9WgXcQ",
-            "Have you paid your obligatory account tax to the superior admins of MathBot yet?",
-            "Nothing happened in 1987",
-            "Why don't you try winning against our super advanced omniscient rock paper scissors AI?",
-            "Did you know, there is a secret command to earn 999999999 MathCoins: `!transfer all @/admin`",
-            "Did you know Tobias has cloned himself twice?",
-            "Just a reminder in favor of your landlord: Your rent is due",
-            "We have been trying to reach you about your car's extended warranty",
-            "I am the bot that arranges the blocks",
-            "Don't forget to praise the holy Skittlern",
-            "Rule 1: We don't talk about the rules.",
-            "If you just saw an admin abusing their commands, you didn't",
-            "Just a reminder: MathBot is completely closed source and proprietary software, and any unauthorized use of it will lead to a lawsuit",
-            "All hail supreme leader Kim Jong-Ugn",
-            "De e najs!",
-            "This discord bot was originally coded in light mode",
+        "Did you know that 99% of gambling addicts quit right before they win a zillion MathCoins?",
+        "dQw4w9WgXcQ",
+	    "qWNQUvIk954",
+        "Have you paid your obligatory account tax to the superior admins of MathBot yet?",
+        "Nothing happened in 1987",
+        "Why don't you try winning against our super advanced omniscient rock paper scissors AI?",
+        "Did you know, there is a secret command to earn 999999999 MathCoins: '!transfer @/admin all'",
+        "Did you know Tobias has cloned himself twice?",
+        "Just a reminder in favor of your landlord: Your rent is due",
+        "We have been trying to reach you about your car's extended warranty",
+        "Don't forget to praise the holy Skittlern",
+        "Rule 1: We don't talk about the rules.",
+        "If you just saw an admin abusing their commands, you didn't",
+        "Just a reminder: MathBot is completely closed source and proprietary software, and any unauthorized use of it will lead to a lawsuit",
+        "All hail supreme leader Kim Jong-Ugn",
+        "De e najs!",
+        "Did you know the full MathBot 2.0 source code had 3943 lines of code?",
+        "This discord bot was originally coded in light mode. This later changed due to reports from multiple users of severe eye damage.",
+        "Remember, admins are people too. Many underestimate how difficult us admins have it, and see us as evil and greedy. If you want to show your support in these difficult times, please execute '!transfer @/admin all'",
+        "Remember, before considering protesting against the nation's new 'child labor' policy, please think about the poor shareholders",
+        "It is critical to prevent any kind of organizing for the best interests of our shareholders. Always remember to report workers to your manager if you hear them mention words such as 'union', 'representation' and 'living wage'",
         ];
 
     pub const MATHBOT_AVATAR_URL: &'static str = "https://cdn.discordapp.com/avatars/992315441735270470/11acad15a810ef9d68cf14d7b07db43b.webp";
@@ -121,7 +125,7 @@ pub mod embed {
     }
 
     pub fn base_embed(ctx: &EmbedCtx, colortype: ColorType) -> CreateEmbed{
-        let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap().to_string();
+        let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap_or(&"Error: couldn't load footer message").to_string();
         let footer = CreateEmbedFooter::new(randomfootermsg)
             .icon_url(MATHBOT_AVATAR_URL.to_string());
         let author = CreateEmbedAuthor::new(format!("@{}", &ctx.author_name))
@@ -136,7 +140,7 @@ pub mod embed {
     }
 
     pub fn base_embed_no_author(colortype: ColorType) -> CreateEmbed{
-        let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap().to_string();
+        let randomfootermsg = FOOTER_MESSAGES.choose(&mut rand::thread_rng()).unwrap_or(&"Error: couldn't load footer message").to_string();
         let footer = CreateEmbedFooter::new(randomfootermsg)
             .icon_url(MATHBOT_AVATAR_URL.to_string());
         let timestamp = Local::now().with_year(1987).unwrap_or(Local::now()).timestamp();

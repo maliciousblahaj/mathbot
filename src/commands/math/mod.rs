@@ -6,6 +6,8 @@ mod answer;
 mod solution;
 mod rng;
 mod fractionify;
+mod prime;
+mod pi;
 
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Math;
@@ -45,6 +47,18 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("fractionify", "frac", "fractionize", "fract", "fraction"),
             category.clone(),
             CommandHelp::new("Turn any non-irrational decimal number into a fraction! To use it with repeating patterns, surround those with parenthesis like this: 1.33333 -> 1.(3)", " {decimal number}{optional repeating pattern surrounded by parenthesis}"),
+        ),
+        Command::new(
+            prime::prime,
+            vec_of_strings!("prime", "primality"),
+            category.clone(),
+            CommandHelp::new("Check if a number is prime!", " {number}"),
+        ),
+        Command::new(
+            pi::pi,
+            vec_of_strings!("pi"),
+            category.clone(),
+            CommandHelp::new("Check one or more decimals of pi up to 1 billion", " {start decimal} /{amount of decimals to display}"),
         ),
     ]
 }

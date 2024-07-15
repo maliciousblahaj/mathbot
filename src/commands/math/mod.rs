@@ -8,6 +8,7 @@ mod rng;
 mod fractionify;
 mod prime;
 mod pi;
+mod fibonacci;
 
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Math;
@@ -59,6 +60,12 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("pi"),
             category.clone(),
             CommandHelp::new("Check one or more decimals of pi up to 1 billion", " {start decimal} /{amount of decimals to display}"),
+        ),
+        Command::new(
+            fibonacci::fibonacci,
+            vec_of_strings!("fibonacci", "fib", "fibon", "fibonac"),
+            category.clone(),
+            CommandHelp::new("Check out the nth fibonacci number", " {number}"),
         ),
     ]
 }

@@ -158,6 +158,7 @@ pub enum ClientError {
     InvalidFractionifyInput,
     PiDigitsTooHighAmount,
     PiDigitsTooHighIndex,
+    FibonacciTooHighInput,
 
     // -- Admin
     AdminBanInvalidAccount,
@@ -236,6 +237,7 @@ impl ClientError {
             Self::InvalidFractionifyInput => a("Invalid input", "You must specify a decimal number, and optionally a repeating pattern wrapped in parenthesis, for example `1.2(3)` for `1.233333...`"),
             Self::PiDigitsTooHighAmount => a("Invalid amount", "Amount must be less than or equal to 2000, since that's the maximum discord message size"),
             Self::PiDigitsTooHighIndex => a("Invalid index", "Only 1 billion digits of pi are stored in our dataset"),
+            Self::FibonacciTooHighInput => a("Number too high", "The bot cannot send a message longer than 2000 characters"),
             // -- Admin
             Self::AdminBanInvalidAccount => a("Invalid account", "There is no MathBot©™ account connected to the user you specified"),
             // -- Misc

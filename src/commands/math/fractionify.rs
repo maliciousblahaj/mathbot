@@ -31,19 +31,19 @@ pub async fn fractionify(params: CommandParams) -> Result<()> {
 }
 
 ///Returns the integer part, decimal part, repeating pattern, length of decimal part, length of repeating pattern
-fn parse_fractionify_input(input: &String) -> Option<(i64, i64, i64, u32, u32)>{
+fn parse_fractionify_input(input: &String) -> Option<(BigInt, BigInt, BigInt, u32, u32)>{
     let output = regex_captures!("^([0-9]+)(?:(?:.([0-9]+)?)(?:\\(([0-9]+)\\))?)?$", input);
     output.map(
         |(_, a, b, c)| {
-            (str_to_i64(a), str_to_i64(b), str_to_i64(c), b.len() as u32, c.len() as u32)
+            (str_to_bigint(a), str_to_bigint(b), str_to_bigint(c), b.len() as u32, c.len() as u32)
         }
     )
 }
 
-fn str_to_i64(input: &str) -> i64 {
+fn str_to_bigint(input: &str) -> BigInt {
     if input.is_empty() {
-        0
+        BigInt::ZERO
     } else {
-        input.parse::<i64>().unwrap()//unwrap_or(BigInt::from(0))
+        input.parse::<BigInt>().unwrap()//unwrap_or(BigInt::from(0))
     }
 }

@@ -1,6 +1,3 @@
-#WARNING, THIS DOES NOT WORK, DO NOT DOCKERIZE MATHBOT UNDER ANY CIRCUMSTANCES
-#
-#THIS IS NOT A JOKE
 FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 
 WORKDIR /mathbot
@@ -27,7 +24,7 @@ RUN cargo build --release --bin mathbot
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /mathbot
-RUN apt-get update && apt-get install -y libssl3 && apt clean && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y libssl3 && apt clean && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /mathbot/target/release/mathbot /usr/local/bin
 ENTRYPOINT [ "/usr/local/bin/mathbot" ]
 

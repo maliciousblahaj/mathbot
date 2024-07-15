@@ -13,7 +13,8 @@ pub async fn botinfo(params: CommandParams) -> Result<()> {
         .title("Bot Information")
         .field("Bot Version", format!("`{BOT_VERSION}`"), false)
         .field("Bot Uptime", timestr, false)
-        .field("Bot Prefix", format!("`{prefix}`"), false);
+        .field("Bot Prefix", format!("`{prefix}`"), false)
+        .field("Source Code", "https://github.com/maliciousblahaj/mathbot", false);
 
     send_embed(embed, &SendCtx::from_params(&params)).await?;
     Ok(())

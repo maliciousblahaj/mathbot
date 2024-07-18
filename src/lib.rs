@@ -47,6 +47,7 @@ pub fn get_current_timestamp_millis() -> Result<u128> {
 
 pub struct SendCtx {
     channel_id: ChannelId,
+    message: Message,
     http: Arc<serenity::http::Http>,
 }
 
@@ -54,6 +55,7 @@ impl SendCtx {
     pub fn from_params(params: &CommandParams) -> Self {
         Self {
             channel_id: params.msg.channel_id,
+            message: params.msg.clone(),
             http: params.ctx.http.clone(),
         }
     }
@@ -76,6 +78,16 @@ pub async fn send_text<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Re
         .await
         .map_err(|e| Error::FailedToSendMessage(e))
 }
+
+pub async fn reply_text<S: AsRef<str> + Display>(message: S, ctx: &SendCtx) -> Result<Message> {
+    ctx.message.reply(
+        &ctx.http, 
+        message.to_string(),
+    )
+        .await
+        .map_err(|e| Error::FailedToSendMessage(e))
+}
+
 
 pub async fn send_message (message: CreateMessage, ctx: &SendCtx) -> Result<Message> {
     ctx.channel_id.send_message(

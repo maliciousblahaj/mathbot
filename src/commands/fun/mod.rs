@@ -4,6 +4,7 @@ mod say;
 mod mrbean;
 mod choose;
 mod rockpaperscissors;
+mod ask;
 
 pub fn commands() -> Vec<Command> {
     let category = CommandCategory::Fun;
@@ -31,6 +32,12 @@ pub fn commands() -> Vec<Command> {
             vec_of_strings!("rockpaperscissors", "rps"),
             category.clone(),
             CommandHelp::new("Play a round of rock paper scissors against a super advanced AI. If you manage to win against it, you win 1 zillion MathCoins", " {your choice}"),
+        ),
+        Command::new(
+            ask::ask,
+            vec_of_strings!("ask"),
+            category.clone(),
+            CommandHelp::new("Ask the bot any question, and it will answer it for you", " {question}"),
         ),
     ]
 }

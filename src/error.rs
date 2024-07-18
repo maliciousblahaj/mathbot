@@ -58,6 +58,8 @@ pub enum Error {
     FailedToSeekInPiDigitFile(std::io::Error),
     FailedToReadInPiDigitFile(std::io::Error),
     PiFailedToGetFirstByte,
+    AskAliasNotFoundInMessageContent,
+    AskFailedToGetGptResponse(openai_api_rust::Error),
 
     // -- Database errors
     FailedToFetchItem(sqlx::Error),
@@ -150,6 +152,7 @@ pub enum ClientError {
     // -- Fun
     NoSayContent,
     RockPaperScissorsInvalidInput(String),
+    AskNoOpenAiApiKey,
 
     // -- Math
     InvalidSolveExpression(String),
@@ -230,6 +233,7 @@ impl ClientError {
             // -- Fun
             Self::NoSayContent => a("Invalid input", "The bot is unable to send an empty message"),
             Self::RockPaperScissorsInvalidInput(i) => a("Invalid input", format!("`{i}` is not a valid choice. Valid choices are `rock`, `r`, `paper`, `p`, `scissors`, `s`.")),
+            Self::AskNoOpenAiApiKey => a("Command currently unavailable", "This command is currently unavailable due to an invalid OpenAI token"),
             // -- Math
             Self::InvalidSolveExpression(expr) => a("Invalid expression", format!("`{expr}` is not a valid expression!")),
             Self::AnswerNoProblemInChannel(prefix) => a("Nothing to answer", format!("There is no ongoing math problem in this channel. To recieve one, execute `{prefix}simplemathproblem`")),

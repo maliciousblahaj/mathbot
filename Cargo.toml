@@ -26,6 +26,7 @@ num-bigint = "0.4"
 num-integer = "0.1"
 num-format = "0.4"
 num-prime = "0.4"
+openai_api_rust = "0.1"
 
 [target.'cfg(unix)'.dependencies]
 openssl = { version = "0.10", features = ["vendored"] }

@@ -11,7 +11,7 @@ pub fn commands() -> Vec<Command> {
             help::help,
             vec_of_strings!("help", "halp", "h"),
             category.clone(),
-            CommandHelp::new("Look up how a specific command is used. `/{}` indicates it's an optional input and `{}` indicates it's a required input. If a command has subcommands you can use `{{command}} {command} {subcommand}` to view its help page", " /{command}"),
+            CommandHelp::new("Look up how a specific command is used. `{...?}` indicates it's an optional input and `{}` indicates it's a required input. If a command has subcommands you can use `{{command}} {command} {subcommand}` to view its help page", " {command?}"),
         ),
         Command::new(
             ping::ping,

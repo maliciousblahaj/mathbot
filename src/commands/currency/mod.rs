@@ -27,7 +27,7 @@ pub fn commands() -> Vec<Command> {
             balance::balance,
             vec_of_strings!("balance", "bal"),
             category.clone(),
-            CommandHelp::new("View your or someone else's balance in MathCoins", " /{username}"),
+            CommandHelp::new("View your or someone else's balance in MathCoins", " {username?}"),
         ),
         Command::new(
             transfer::transfer,

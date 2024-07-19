@@ -23,7 +23,7 @@ impl ModelController {
             username = Uuid::new_v4().to_string();
         }
         let timestamp = get_current_timestamp_secs_i64()?;
-        sqlx::query!("INSERT INTO Accounts (user_id, created, username, avatar_url) VALUES (?,?,?,?)", user_id, timestamp, username, avatar_url)
+        sqlx::query!("INSERT INTO Accounts (user_id, created, balance, username, avatar_url) VALUES (?,?,5000.0,?,?)", user_id, timestamp, username, avatar_url)
             .execute(&self.database)
             .await
             .map_err(|e| Error::FailedToCreateAccount(e))?;

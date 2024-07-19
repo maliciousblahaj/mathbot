@@ -53,7 +53,7 @@ fn shop_embed(params: &CommandParams, account: &Account, shop: &Vec<ShopItem>, p
     }
     base_embed(&EmbedCtx::from_account(account), ColorType::Currency)
         .title(format!("The MathBot Shop, page {page}"))
-        .description(format!("Use `{}shop buy {{itemid}} /{{count}}` to buy items", params.bot_prefix))
+        .description(format!("Use `{}shop buy {{itemid}} {{count?}}` to buy items", params.bot_prefix))
         .fields(fields)
 }
 
@@ -70,7 +70,7 @@ pub fn command() -> Result<Command> {
             buy::buy,
             vec_of_strings!("buy"),
             category.clone(),
-            CommandHelp::new("Buy an item from the shop", " {id} /{amount}"),
+            CommandHelp::new("Buy an item from the shop", " {id} {amount?}"),
         )
     )?
     )

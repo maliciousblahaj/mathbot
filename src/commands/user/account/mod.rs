@@ -58,7 +58,7 @@ pub fn command() -> Result<Command> {
         account,
         vec_of_strings!("account", "a", "p", "profile"),
         category.clone(),
-        CommandHelp::new("Look up info about your or someone else's account", " /{username}"),
+        CommandHelp::new("Look up info about your or someone else's account", " {username?}"),
     )
         .register(
             vec![
@@ -84,13 +84,13 @@ pub fn command() -> Result<Command> {
                     update_bio::update_bio,
                     vec_of_strings!("update_bio"),
                     category.clone(),
-                    CommandHelp::new("Update your account bio, or specify remove as an argument to remove your current one", " {new bio/remove}"),
+                    CommandHelp::new("Update your account bio, or specify remove as an argument to remove your current one", " {new bio/\"remove\"}"),
                 ),
                 Command::new(
                     update_avatar::update_avatar,
                     vec_of_strings!("update_avatar"),
                     category.clone(),
-                    CommandHelp::new("Update your avatar shown on your profile. You can either attach an image to your message or paste an image URL", " /{new avatar url}"),
+                    CommandHelp::new("Update your avatar shown on your profile. You can either attach an image to your message or paste an image URL", " {new avatar url?}"),
                 ),
                 Command::new(
                     update_pronouns::update_pronouns,

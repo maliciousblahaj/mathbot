@@ -59,7 +59,7 @@ pub fn commands() -> Vec<Command> {
             pi::pi,
             vec_of_strings!("pi"),
             category.clone(),
-            CommandHelp::new("Check one or more decimals of pi up to 1 billion", " {start decimal} /{amount of decimals to display}"),
+            CommandHelp::new("Check one or more decimals of pi up to 1 billion", " {start decimal} {amount of decimals to display?}"),
         ),
         Command::new(
             fibonacci::fibonacci,

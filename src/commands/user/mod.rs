@@ -11,7 +11,7 @@ pub fn commands() -> Vec<Command> {
             inventory::inventory,
             vec_of_strings!("inventory", "inv", "invent", "in", "inve", "items"),
             category.clone(),
-            CommandHelp::new("Look up what items you have in your inventory", " /{page}"),
+            CommandHelp::new("Look up what items you have in your inventory", " {page?}"),
         ),
     ]
 }
